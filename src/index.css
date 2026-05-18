@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { color-scheme: dark; }
+
+  body {
+    @apply bg-surface-900 text-slate-200 font-sans antialiased;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-surface-800; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-500 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+}
+
+@layer components {
+  .neon-text-blue   { text-shadow: 0 0 10px rgba(6,182,212,0.8),  0 0 30px rgba(6,182,212,0.4);  }
+  .neon-text-purple { text-shadow: 0 0 10px rgba(168,85,247,0.8), 0 0 30px rgba(168,85,247,0.4); }
+  .neon-text-green  { text-shadow: 0 0 10px rgba(16,185,129,0.8), 0 0 30px rgba(16,185,129,0.4); }
+  .neon-text-amber  { text-shadow: 0 0 10px rgba(245,158,11,0.8), 0 0 30px rgba(245,158,11,0.4); }
+
+  .glass-panel {
+    @apply bg-surface-700/60 backdrop-blur-md border border-slate-700/50 rounded-xl;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide;
+  }
+
+  .btn-primary {
+    @apply px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200
+           bg-band24 text-slate-900 hover:bg-band24-dark active:scale-95
+           shadow-neon-blue hover:shadow-neon-blue;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200
+           border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white
+           hover:bg-surface-600 active:scale-95;
+  }
+
+  .grid-bg {
+    background-image: linear-gradient(rgba(6,182,212,0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(6,182,212,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .packet {
+    @apply absolute w-8 h-5 rounded-md flex items-center justify-center text-xs font-bold;
+  }
+}
+
+@layer utilities {
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent;
+  }
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent;
+  }
+  .border-glow-blue   { box-shadow: 0 0 0 1px rgba(6,182,212,0.4),  0 0 20px rgba(6,182,212,0.1);  }
+  .border-glow-purple { box-shadow: 0 0 0 1px rgba(168,85,247,0.4), 0 0 20px rgba(168,85,247,0.1); }
+  .border-glow-green  { box-shadow: 0 0 0 1px rgba(16,185,129,0.4), 0 0 20px rgba(16,185,129,0.1); }
+  .border-glow-amber  { box-shadow: 0 0 0 1px rgba(245,158,11,0.4), 0 0 20px rgba(245,158,11,0.1); }
+}
