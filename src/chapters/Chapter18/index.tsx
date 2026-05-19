@@ -322,8 +322,8 @@ function TCPHandshakeTab() {
                         className="absolute"
                         style={{
                           top: yPos,
-                          left: toRight ? '24px' : 'calc(100% - 24px)',
-                          right: toRight ? '24px' : 'calc(100% - 24px)',
+                          left: '24px',
+                          right: '24px',
                           transformOrigin: toRight ? 'left' : 'right',
                         }}
                       >
@@ -600,12 +600,10 @@ function DataFlowTab() {
 }
 
 // ─── Main Chapter ─────────────────────────────────────────────────────────────
-const TABS = ['TCP/IP Overview', 'Application Layer', 'Transport Layer', 'Internet Layer', 'Data Link & Physical', 'TCP Handshake', 'Data Flow'];
+const TABS = ['TCP/IP Overview', 'Application Layer', 'Transport + Handshake', 'Internet Layer', 'Data Link & Physical', 'Data Flow'];
 
 export function Chapter18() {
   const [tab, setTab] = useState(0);
-
-  const layerTabIndex = [4, 3, 2, 1, 0]; // maps tab 1–4 to TCPIP_LAYERS array indices
 
   return (
     <div className="min-h-screen p-6 space-y-6" style={{ background: 'linear-gradient(135deg, #0d1117 0%, #0f1923 100%)' }}>
@@ -666,9 +664,26 @@ export function Chapter18() {
           style={{ background: 'rgba(255,255,255,0.03)' }}
         >
           {tab === 0 && <OverviewTab />}
-          {tab >= 1 && tab <= 4 && <LayerDetailTab layer={TCPIP_LAYERS[layerTabIndex[tab]]} />}
-          {tab === 5 && <TCPHandshakeTab />}
-          {tab === 6 && <DataFlowTab />}
+          {tab === 1 && <LayerDetailTab layer={TCPIP_LAYERS[0]} />}
+          {tab === 2 && (
+            <div className="space-y-8">
+              <LayerDetailTab layer={TCPIP_LAYERS[1]} />
+              <div className="border-t border-white/10 pt-6">
+                <div className="text-xs font-semibold text-green-400 uppercase tracking-wider mb-4">TCP 3-Way Handshake & Teardown — Transport Layer Animation</div>
+                <TCPHandshakeTab />
+              </div>
+            </div>
+          )}
+          {tab === 3 && <LayerDetailTab layer={TCPIP_LAYERS[2]} />}
+          {tab === 4 && (
+            <div className="space-y-8">
+              <LayerDetailTab layer={TCPIP_LAYERS[3]} />
+              <div className="border-t border-white/10 pt-6">
+                <LayerDetailTab layer={TCPIP_LAYERS[4]} />
+              </div>
+            </div>
+          )}
+          {tab === 5 && <DataFlowTab />}
         </motion.div>
       </AnimatePresence>
     </div>

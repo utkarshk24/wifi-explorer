@@ -484,6 +484,101 @@ function RegulatoryTable() {
   );
 }
 
+// ─── AP Placement Best Practices ─────────────────────────────────────────────
+
+const AP_PLACEMENT_RULES = [
+  {
+    title: 'Height & Mounting', color: '#06b6d4', icon: '📏',
+    rules: [
+      'Mount at 8–10 ft (2.5–3 m) for office environments — avoids multipath from floor, clears furniture obstruction',
+      'Ceiling mount preferred: consistent pattern, central coverage, less body absorption',
+      'Outdoor: 15–25 ft pole mount for maximum coverage radius, above human head height',
+      'Avoid mounting flush against walls — creates asymmetric coverage',
+    ],
+  },
+  {
+    title: 'Coverage & Overlap', color: '#a855f7', icon: '🔄',
+    rules: [
+      '15–20% cell overlap for seamless roaming handoff (-67 dBm at overlap boundary for voice/video)',
+      'Min. −67 dBm RSSI at worst coverage point for VoIP; −72 dBm for data only',
+      'Target ≥ 20 dB SNR at cell edge for MCS 0 (BPSK 1/2)',
+      'Co-channel separation: ≥ 19 dB SINR for OFDM reception; use non-overlapping channels (1/6/11 in 2.4 GHz)',
+    ],
+  },
+  {
+    title: 'Density & Capacity', color: '#10b981', icon: '👥',
+    rules: [
+      'High density (classrooms, conference rooms): 1 AP per 25–30 clients, reduce TX power to limit cell size',
+      'Standard office: 1 AP per 2000–3000 sq ft at 2.4 GHz; 1 per 1000–1500 sq ft for 5 GHz',
+      'Use lower TX power + more APs for capacity; higher power + fewer APs for coverage',
+      'Collocated APs: minimum 19 dB separation to avoid co-channel interference',
+    ],
+  },
+  {
+    title: 'Obstructions & Material Loss', color: '#f59e0b', icon: '🧱',
+    rules: [
+      'Drywall: 3–5 dB per wall; Concrete/CMU: 12–15 dB; Steel door: 13–20 dB; Glass: 2–4 dB',
+      'Place APs to minimize wall penetrations — inside offices instead of hallways when possible',
+      'Elevator shafts, stairwells, bathrooms: dead zones requiring dedicated APs or distribution antennas',
+      'Human body: 3–5 dB absorption in 2.4 GHz; crowds add 5–10 dB additional attenuation',
+    ],
+  },
+  {
+    title: 'Common Mistakes', color: '#ef4444', icon: '⚠️',
+    rules: [
+      'Hallway-only APs: under-serves offices on either side, causes multipath from parallel walls',
+      'Maximum TX power always on: creates co-channel interference, forces clients to stay on distant APs (sticky client)',
+      'All 2.4 GHz on same channel: co-channel interference kills capacity in multi-AP environments',
+      'Ignoring 6 GHz: modern Wi-Fi 6E/7 clients benefit enormously from uncongested 6 GHz band',
+    ],
+  },
+];
+
+function APPlacementSection() {
+  const [selected, setSelected] = useState(0);
+  const rule = AP_PLACEMENT_RULES[selected];
+
+  return (
+    <div className="space-y-5 mt-6">
+      <div className="glass-panel p-5 border-glow-blue space-y-4">
+        <h3 className="font-bold text-white">AP Placement Best Practices</h3>
+        <div className="flex gap-2 flex-wrap">
+          {AP_PLACEMENT_RULES.map((r, i) => (
+            <button key={r.title} onClick={() => setSelected(i)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${selected === i ? 'text-white' : 'border-slate-700 text-slate-500 hover:text-slate-300'}`}
+              style={selected === i ? { borderColor: r.color + '60', background: r.color + '15', color: r.color } : {}}>
+              {r.icon} {r.title}
+            </button>
+          ))}
+        </div>
+
+        <motion.div key={selected} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          className="space-y-2">
+          {rule.rules.map((r, i) => (
+            <div key={i} className="flex gap-3 items-start bg-surface-900/50 rounded-lg p-3">
+              <span className="font-bold min-w-5 text-center text-xs" style={{ color: rule.color }}>{i + 1}</span>
+              <p className="text-xs text-slate-300 leading-relaxed">{r}</p>
+            </div>
+          ))}
+        </motion.div>
+
+        <div className="grid sm:grid-cols-3 gap-3">
+          {[
+            { label: 'VoIP / Video target', val: '≥ −67 dBm', color: '#10b981' },
+            { label: 'Data-only minimum', val: '≥ −72 dBm', color: '#f59e0b' },
+            { label: 'Roaming overlap', val: '15–20%', color: '#06b6d4' },
+          ].map(s => (
+            <div key={s.label} className="bg-surface-900/60 rounded-lg p-3 text-center">
+              <p className="text-xs text-slate-500">{s.label}</p>
+              <p className="font-bold text-sm font-mono mt-1" style={{ color: s.color }}>{s.val}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Chapter 9 ────────────────────────────────────────────────────────────────
 
 const CH9_TAB_SUBTOPICS: Record<Tab, string[]> = {
@@ -519,7 +614,7 @@ export function Chapter9() {
         <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.22 }}>
           {activeTab === 'Survey Types'      && <SurveyWorkflow />}
           {activeTab === 'Channel Planning'  && <ChannelPlanVisualizer />}
-          {activeTab === 'Coverage Design'   && <CoverageSimulator />}
+          {activeTab === 'Coverage Design'   && <><CoverageSimulator /><APPlacementSection /></>}
           {activeTab === 'Capacity Planning' && <CapacityCalculator />}
           {activeTab === 'Regulatory & DFS'  && <RegulatoryTable />}
         </motion.div>

@@ -7,7 +7,7 @@ import type { ChapterId } from '../../types';
 
 export function Sidebar() {
   const { activeChapter, setActiveChapter } = useApp();
-  const [expanded, setExpanded] = useState<ChapterId | null>('ch13');
+  const [expanded, setExpanded] = useState<ChapterId | null>('ch16');
 
   return (
     <aside className="w-72 flex-shrink-0 flex flex-col bg-surface-800 border-r border-slate-700/50 h-screen sticky top-0 overflow-hidden">

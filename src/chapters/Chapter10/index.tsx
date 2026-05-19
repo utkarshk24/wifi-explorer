@@ -634,6 +634,124 @@ function KPIDashboard() {
   );
 }
 
+// ─── Vendor Tools ────────────────────────────────────────────────────────────
+
+const VENDOR_TOOLS = [
+  {
+    name: 'Wireshark / tshark', category: 'Protocol Capture', color: '#06b6d4', icon: '🦈',
+    os: 'Win / macOS / Linux', cost: 'Free',
+    use: 'Capture and decode 802.11 frames including management, control, data. Requires monitor-mode capable Wi-Fi adapter.',
+    filters: ['wlan.fc.type == 0 (management)', 'eapol (4-way handshake)', 'wlan.fc.retry == 1 (retries)', 'wlan.signal_dbm < -70'],
+    tip: 'Use a dedicated capture adapter (e.g., Alfa AWUS036ACS) in monitor mode; save as .pcapng for annotated analysis.',
+  },
+  {
+    name: 'Ekahau AI Pro', category: 'Site Survey & Design', color: '#a855f7', icon: '📍',
+    os: 'Win / macOS', cost: 'Commercial ($)',
+    use: 'Industry-standard Wi-Fi planning and survey tool. Predictive RF simulation + active/passive survey with sidekick sensor.',
+    filters: ['RSSI heatmap', 'SNR heatmap', 'Channel utilization', 'AP coverage / co-channel'],
+    tip: 'Use Ekahau Sidekick 2 for hardware-accelerated packet capture + RF scanning simultaneously during walk survey.',
+  },
+  {
+    name: 'Cisco Catalyst Center', category: 'Network Management', color: '#10b981', icon: '🖥️',
+    os: 'Web (appliance)', cost: 'Enterprise',
+    use: 'Cisco DNAC-based controller for WLAN lifecycle management: AI-driven assurance, client 360, issue detection.',
+    filters: ['Client 360 view', 'AP health dashboard', 'RF analytics', 'SWIM (Software Image Mgmt)'],
+    tip: 'Catalyst Center\'s "AI Network Analytics" compares your network to Cisco\'s anonymized global baseline to flag anomalies.',
+  },
+  {
+    name: 'MetaGeek Eye P.A. / Chanalyzer', category: 'Spectrum Analysis', color: '#f59e0b', icon: '📻',
+    os: 'Windows', cost: 'Commercial ($)',
+    use: 'Real-time spectrum analyzer showing RF utilization, interference sources, duty cycle per channel.',
+    filters: ['Channel utilization %', 'Interference duty cycle', 'Device classifier (microwave, BT, baby monitor)', 'Waterfall chart'],
+    tip: 'Use Wi-Spy DBx hardware USB dongle for 2.4 + 5 GHz simultaneous sweep. Correlate spectrum data with Wireshark captures.',
+  },
+  {
+    name: 'Aruba Central / AirWave', category: 'Network Management', color: '#38bdf8', icon: '☁️',
+    os: 'Cloud / Web', cost: 'Enterprise',
+    use: 'Aruba\'s cloud management and on-prem assurance platform. AI-driven root cause analysis, client health scores.',
+    filters: ['User Experience Score', 'RF health trends', 'Client onboarding issues', 'Rogue AP reports'],
+    tip: 'AirWave\'s VisualRF module renders live heatmaps from AP scan data without requiring dedicated survey hardware.',
+  },
+  {
+    name: 'WiFi Explorer (macOS)', category: 'Quick Scan', color: '#22d3ee', icon: '🔭',
+    os: 'macOS', cost: 'Free / Pro',
+    use: 'Scan nearby networks, view RSSI, noise floor, channel utilization. Identify co-channel interference at a glance.',
+    filters: ['RSSI per AP', 'Channel overlap view', 'Band steering check', '802.11 generation identification'],
+    tip: 'WiFi Explorer Pro adds frame capture (leverages CoreWLAN monitor mode) — useful for quick field diagnostics without Wireshark.',
+  },
+];
+
+function VendorToolsSection() {
+  const [selected, setSelected] = useState(0);
+  const tool = VENDOR_TOOLS[selected];
+
+  return (
+    <div className="space-y-5 mt-6">
+      <div className="glass-panel p-5 border-glow-blue space-y-4">
+        <h3 className="font-bold text-white">Vendor Tools & Analysis Workflow</h3>
+        <div className="flex gap-1.5 flex-wrap">
+          {VENDOR_TOOLS.map((t, i) => (
+            <button key={t.name} onClick={() => setSelected(i)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${selected === i ? 'text-white' : 'border-slate-700 text-slate-500 hover:text-slate-300'}`}
+              style={selected === i ? { borderColor: t.color + '60', background: t.color + '15', color: t.color } : {}}>
+              {t.icon} {t.name.split(' / ')[0].split(' ')[0]}
+            </button>
+          ))}
+        </div>
+
+        <motion.div key={selected} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          className="space-y-3">
+          <div className="flex items-start justify-between flex-wrap gap-2">
+            <div>
+              <h4 className="font-bold text-white">{tool.icon} {tool.name}</h4>
+              <div className="flex gap-2 mt-1">
+                <span className="text-xs px-2 py-0.5 rounded-full border" style={{ color: tool.color, borderColor: tool.color + '40', background: tool.color + '15' }}>{tool.category}</span>
+                <span className="text-xs text-slate-500">{tool.os}</span>
+                <span className="text-xs text-slate-500">{tool.cost}</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">{tool.use}</p>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-bold text-slate-400">Key Metrics / Filters</p>
+            <div className="flex flex-wrap gap-1.5">
+              {tool.filters.map(f => (
+                <code key={f} className="text-xs font-mono bg-surface-900/60 border border-slate-700/50 rounded px-2 py-0.5 text-cyan-300">{f}</code>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+            <p className="text-xs font-bold text-amber-400 mb-1">Pro Tip</p>
+            <p className="text-xs text-slate-400">{tool.tip}</p>
+          </div>
+        </motion.div>
+
+        <div className="bg-surface-900/60 rounded-xl p-4 space-y-2">
+          <p className="text-xs font-bold text-slate-300">Recommended Toolkit for Field Analysis</p>
+          <div className="grid sm:grid-cols-2 gap-2 text-xs text-slate-400">
+            {[
+              { step: '1. Passive Scan', tool: 'WiFi Explorer / Chanalyzer — identify channels, RSSI, interference' },
+              { step: '2. Spectrum', tool: 'MetaGeek + Wi-Spy — locate non-802.11 interference sources' },
+              { step: '3. Protocol Capture', tool: 'Wireshark + monitor mode adapter — capture auth, retries, timing' },
+              { step: '4. Site Survey', tool: 'Ekahau + Sidekick — validate coverage, SNR, roaming thresholds' },
+              { step: '5. Controller Check', tool: 'Cisco/Aruba dashboard — client health, event logs, RF trends' },
+              { step: '6. Compare & Fix', tool: 'Correlate spectrum + PCAP + heatmap to isolate root cause' },
+            ].map(r => (
+              <div key={r.step} className="flex gap-2">
+                <span className="font-bold text-band5 min-w-28">{r.step}</span>
+                <span>{r.tool}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const CH10_TAB_SUBTOPICS: Record<Tab, string[]> = {
   'Methodology':       ['methodology'],
   'Spectrum Analysis': ['spectrum'],
@@ -682,7 +800,7 @@ export function Chapter10() {
           {tab === 'Spectrum Analysis' && <SpectrumDisplay />}
           {tab === 'Common Issues' && <IssuesBrowser />}
           {tab === 'Protocol Analysis' && <ProtocolGuide />}
-          {tab === 'Performance KPIs' && <KPIDashboard />}
+          {tab === 'Performance KPIs' && <><KPIDashboard /><VendorToolsSection /></>}
         </motion.div>
       </AnimatePresence>
     </div>

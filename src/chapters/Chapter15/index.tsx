@@ -193,12 +193,12 @@ function CSMACDSim() {
                 </motion.div>
               )}
 
-              {/* Transmitted signal dot */}
+              {/* Transmitted signal dot — travel clamped to bus endpoints */}
               {s.transmitting && (
                 <motion.div className="absolute rounded-full w-3 h-3"
                   style={{ top: '40px', left: '50%', transform: 'translate(-50%, 0)', background: s.color }}
-                  animate={{ x: [0, 200, -200, 0] }}
-                  transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }} />
+                  animate={{ x: [0, (440 - s.x), -(s.x - 40), 0] }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }} />
               )}
             </div>
           ))}
@@ -472,49 +472,70 @@ function FlowControlSim() {
   const [txRate] = useState(8);
   const [pauseCount, setPauseCount] = useState(0);
   const [log, setLog] = useState<string[]>([]);
+  const [running, setRunning] = useState(true);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
-  const tick = useRef(0);
+  const stateRef = useRef({ paused: false, pauseRemaining: 0, bufferLevel: 0 });
 
-  const addLog = (msg: string) => setLog(p => [msg, ...p].slice(0, 8));
+  const addLog = useCallback((msg: string) => setLog(p => [msg, ...p].slice(0, 8)), []);
+
+  const reset = useCallback(() => {
+    if (timer.current) clearInterval(timer.current);
+    setBufferLevel(0);
+    setPaused(false);
+    setPauseRemaining(0);
+    setPauseCount(0);
+    setLog([]);
+    stateRef.current = { paused: false, pauseRemaining: 0, bufferLevel: 0 };
+    setRunning(false);
+    setTimeout(() => setRunning(true), 50);
+  }, []);
 
   useEffect(() => {
+    if (!running) return;
     timer.current = setInterval(() => {
-      tick.current++;
-      setPaused(prev => {
-        setPauseRemaining(pr => {
-          if (pr > 0) return pr - 1;
-          if (prev) { addLog('▶ RESUME — sender resumes transmitting'); return 0; }
-          return 0;
-        });
-        return prev && pauseRemaining > 0;
-      });
+      const s = stateRef.current;
 
-      setBufferLevel(prev => {
-        if (paused) {
-          const newLevel = Math.max(0, prev - rxRate * 0.12);
-          return newLevel;
+      // Update pause countdown
+      let newPaused = s.paused;
+      let newPauseRemaining = s.pauseRemaining;
+      if (s.paused) {
+        newPauseRemaining = Math.max(0, s.pauseRemaining - 1);
+        if (newPauseRemaining === 0) {
+          newPaused = false;
+          addLog('▶ RESUME — sender resumes transmitting');
         }
-        const newLevel = Math.min(100, prev + (txRate - rxRate) * 0.1);
-        if (newLevel >= 80 && prev < 80) {
-          addLog(`⏸ PAUSE frame sent — buffer at ${newLevel.toFixed(0)}% — quanta=${quanta * 512} bit-times`);
-          setPaused(true);
-          setPauseRemaining(quanta);
-          setPauseCount(c => c + 1);
-        }
-        return newLevel;
-      });
+      }
+
+      // Update buffer
+      let newBuffer = s.bufferLevel;
+      if (newPaused) {
+        newBuffer = Math.max(0, s.bufferLevel - rxRate * 0.15);
+      } else if (s.bufferLevel < 100) {
+        newBuffer = Math.min(100, s.bufferLevel + (txRate - rxRate) * 0.1);
+      }
+      if (newBuffer >= 80 && s.bufferLevel < 80) {
+        addLog(`⏸ PAUSE frame sent — buffer at ${newBuffer.toFixed(0)}% — quanta=${quanta * 512} bit-times`);
+        newPaused = true;
+        newPauseRemaining = quanta;
+        setPauseCount(c => c + 1);
+      }
+
+      stateRef.current = { paused: newPaused, pauseRemaining: newPauseRemaining, bufferLevel: newBuffer };
+      setPaused(newPaused);
+      setPauseRemaining(newPauseRemaining);
+      setBufferLevel(newBuffer);
     }, 200);
     return () => { if (timer.current) clearInterval(timer.current); };
-  }, [paused, rxRate, txRate, quanta, pauseRemaining]);
+  }, [running, rxRate, txRate, quanta, addLog]);
 
   const bufferColor = bufferLevel > 80 ? '#ef4444' : bufferLevel > 60 ? '#f59e0b' : '#10b981';
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 items-end">
         <div>
           <label className="text-xs text-slate-400">Receiver processing rate: <span className="text-white font-bold">{rxRate}x</span></label>
-          <input type="range" min={1} max={7} value={rxRate} onChange={e => setRxRate(+e.target.value)}
+          <input type="range" min={1} max={7} value={rxRate} onChange={e => { setRxRate(+e.target.value); reset(); }}
             className="w-full accent-cyan-500 mt-1" />
         </div>
         <div>
@@ -523,11 +544,14 @@ function FlowControlSim() {
             className="w-full accent-amber-500 mt-1" />
         </div>
       </div>
+      <button onClick={reset} className="px-3 py-1.5 rounded-lg text-xs border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all">
+        ↺ Reset Simulation
+      </button>
 
       {/* Visual pipeline */}
-      <div className="flex items-center gap-3 py-3">
+      <div className="flex items-center gap-4 py-3 px-2">
         {/* Sender */}
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
           <motion.div className="w-16 h-12 rounded-xl border flex flex-col items-center justify-center"
             animate={{
               borderColor: paused ? '#f59e0b60' : '#06b6d460',
@@ -541,47 +565,52 @@ function FlowControlSim() {
           <span className="text-xs text-slate-500">Sender</span>
         </div>
 
-        {/* Wire + PAUSE frame */}
-        <div className="flex-1 relative h-8">
-          <div className="absolute inset-y-1/2 inset-x-0 h-px bg-slate-700" />
-          {/* Data packets */}
+        {/* Wire + packets */}
+        <div className="flex-1 relative overflow-hidden" style={{ height: '40px' }}>
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-700" />
+          {/* Data packets — left=0 to right end */}
           {!paused && (
-            <motion.div className="absolute w-6 h-5 rounded bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-              animate={{ x: ['0%', '100%'] }}
-              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}>
-              <span className="text-xs">📦</span>
+            <motion.div
+              key={`pkt-${running}`}
+              className="absolute w-6 h-5 rounded bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center"
+              style={{ top: '50%', translateY: '-50%', left: 0 }}
+              animate={{ left: ['0%', 'calc(100% - 24px)'] }}
+              transition={{ duration: 0.7, repeat: Infinity, ease: 'linear', repeatDelay: 0.1 }}>
+              <span style={{ fontSize: '10px' }}>📦</span>
             </motion.div>
           )}
-          {/* PAUSE frame going backwards */}
+          {/* PAUSE frame going right-to-left */}
           {paused && pauseRemaining > 0 && (
-            <motion.div className="absolute w-14 h-5 rounded bg-amber-500/20 border border-amber-500/50 flex items-center justify-center"
-              style={{ top: '50%', transform: 'translateY(-50%)' }}
-              animate={{ x: ['100%', '0%'] }}
-              transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}>
-              <span className="font-mono font-bold text-amber-300" style={{ fontSize: '8px' }}>PAUSE</span>
+            <motion.div
+              key={`pause-${pauseCount}`}
+              className="absolute w-14 h-5 rounded bg-amber-500/20 border border-amber-500/50 flex items-center justify-center"
+              style={{ top: '50%', translateY: '-50%', right: 0 }}
+              animate={{ right: ['0%', 'calc(100% - 56px)'] }}
+              transition={{ duration: 0.7, repeat: Infinity, ease: 'linear', repeatDelay: 0.1 }}>
+              <span className="font-mono font-bold text-amber-300" style={{ fontSize: '8px' }}>⏸ PAUSE</span>
             </motion.div>
           )}
         </div>
 
         {/* Receiver + buffer */}
-        <div className="flex flex-col items-center gap-1">
-          <div className="w-20 relative">
-            <div className="absolute right-full mr-2 top-0 bottom-0 flex flex-col justify-end">
-              {/* Buffer fill bar */}
-              <div className="w-5 bg-surface-800 rounded-full overflow-hidden" style={{ height: '48px' }}>
-                <motion.div className="w-full rounded-full"
-                  style={{ background: bufferColor, height: `${bufferLevel}%` }}
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          <div className="relative">
+            {/* Buffer bar — left of receiver box */}
+            <div className="absolute right-full mr-2 flex flex-col items-center justify-end" style={{ height: '48px', bottom: 0 }}>
+              <div className="w-5 bg-surface-800 rounded overflow-hidden" style={{ height: '40px' }}>
+                <motion.div className="w-full absolute bottom-0 rounded"
+                  style={{ background: bufferColor }}
+                  animate={{ height: `${bufferLevel}%` }}
                   transition={{ duration: 0.2 }} />
               </div>
-              <span className="text-xs font-mono text-center mt-0.5" style={{ fontSize: '8px', color: bufferColor }}>
+              <span className="font-mono text-center mt-0.5" style={{ fontSize: '8px', color: bufferColor }}>
                 {bufferLevel.toFixed(0)}%
               </span>
             </div>
             <motion.div className="w-16 h-12 rounded-xl border flex flex-col items-center justify-center"
               animate={{ borderColor: bufferLevel > 80 ? '#ef444460' : '#10b98160' }}>
               <span className="text-lg">🖥️</span>
-              <span className="text-xs font-bold text-emerald-400" style={{ fontSize: '9px' }}>RECV</span>
+              <span className="font-bold text-emerald-400" style={{ fontSize: '9px' }}>RECV</span>
             </motion.div>
           </div>
           <span className="text-xs text-slate-500">Receiver</span>

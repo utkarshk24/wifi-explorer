@@ -398,6 +398,129 @@ function BeamformingVisualizer() {
   );
 }
 
+// ─── VSWR & Impedance Matching ───────────────────────────────────────────────
+
+const VSWR_ROWS = [
+  { vswr: 1.0,  rl: '∞',    refl: '0%',   note: 'Perfect match (ideal)', color: '#10b981' },
+  { vswr: 1.5,  rl: '14 dB', refl: '4%',   note: 'Excellent — antenna spec target', color: '#10b981' },
+  { vswr: 2.0,  rl: '9.5 dB', refl: '11%', note: 'Acceptable for most systems', color: '#f59e0b' },
+  { vswr: 2.5,  rl: '7.4 dB', refl: '18%', note: 'Borderline — check cable/connector', color: '#f59e0b' },
+  { vswr: 3.0,  rl: '6 dB',  refl: '25%', note: 'Poor — significant power reflected', color: '#ef4444' },
+  { vswr: 5.0,  rl: '3.5 dB', refl: '44%', note: 'Very poor — almost half power lost', color: '#ef4444' },
+];
+
+function VSWRSection() {
+  const [gamma, setGamma] = useState(0.2);
+  const vswr = (1 + gamma) / (1 - gamma);
+  const rl = -20 * Math.log10(gamma);
+  const refl = (gamma * gamma * 100).toFixed(1);
+
+  return (
+    <div className="space-y-5 mt-6">
+      <div className="glass-panel p-5 border-glow-blue space-y-4">
+        <h3 className="font-bold text-white">VSWR, Return Loss & Impedance Matching</h3>
+        <p className="text-xs text-slate-400">VSWR (Voltage Standing Wave Ratio) measures how well an antenna is matched to its feedline. A perfect match = 1:1; any mismatch reflects power back toward the transmitter.</p>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div className="bg-surface-900/60 rounded-xl p-4 space-y-2">
+              <p className="text-xs font-bold text-slate-300">Key Formulas</p>
+              {[
+                { label: 'Reflection Coeff.', formula: 'Γ = (Z_L − Z_0) / (Z_L + Z_0)' },
+                { label: 'VSWR', formula: 'VSWR = (1 + |Γ|) / (1 − |Γ|)' },
+                { label: 'Return Loss', formula: 'RL = −20 log₁₀(|Γ|)  dB' },
+                { label: 'Reflected Power', formula: 'P_refl = |Γ|² × P_forward' },
+              ].map(f => (
+                <div key={f.label} className="flex gap-2 items-start">
+                  <span className="text-xs text-slate-500 min-w-24">{f.label}</span>
+                  <code className="text-xs font-mono text-band24">{f.formula}</code>
+                </div>
+              ))}
+            </div>
+            <div className="bg-surface-900/60 rounded-xl p-4 space-y-2">
+              <p className="text-xs font-bold text-slate-300">Standard Impedances</p>
+              {[
+                { z: '50 Ω', use: 'Wi-Fi, RF equipment, coax (most common)' },
+                { z: '75 Ω', use: 'Cable TV, video distribution' },
+                { z: '300 Ω', use: 'Folded dipole, twin-lead' },
+              ].map(r => (
+                <div key={r.z} className="flex gap-2">
+                  <span className="font-bold font-mono text-amber-400 min-w-16 text-xs">{r.z}</span>
+                  <span className="text-xs text-slate-400">{r.use}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="bg-surface-900/60 rounded-xl p-4 space-y-3">
+              <p className="text-xs font-bold text-slate-300">Interactive Calculator</p>
+              <div>
+                <label className="text-xs text-slate-400">|Γ| reflection coefficient: <span className="font-bold text-band24">{gamma.toFixed(2)}</span></label>
+                <input type="range" min="0" max="0.8" step="0.01" value={gamma}
+                  onChange={e => setGamma(+e.target.value)} className="w-full accent-cyan-400 mt-1" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { k: 'VSWR', v: `${vswr.toFixed(2)}:1`, color: vswr < 1.5 ? '#10b981' : vswr < 2.5 ? '#f59e0b' : '#ef4444' },
+                  { k: 'Return Loss', v: `${rl.toFixed(1)} dB`, color: rl > 14 ? '#10b981' : rl > 7 ? '#f59e0b' : '#ef4444' },
+                  { k: 'Reflected', v: `${refl}%`, color: +refl < 5 ? '#10b981' : +refl < 20 ? '#f59e0b' : '#ef4444' },
+                ].map(f => (
+                  <div key={f.k} className="bg-surface-800/60 rounded-lg p-2 text-center">
+                    <p className="text-xs text-slate-500">{f.k}</p>
+                    <p className="text-sm font-bold font-mono" style={{ color: f.color }}>{f.v}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-slate-700/50">
+                {['VSWR', 'Return Loss', 'Reflected Power', 'Assessment'].map(h => (
+                  <th key={h} className="text-left py-2 px-2 text-slate-500 font-semibold">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {VSWR_ROWS.map(r => (
+                <tr key={r.vswr} className="border-b border-slate-800/40">
+                  <td className="py-1.5 px-2 font-bold font-mono" style={{ color: r.color }}>{r.vswr.toFixed(1)}:1</td>
+                  <td className="py-1.5 px-2 text-slate-300">{r.rl}</td>
+                  <td className="py-1.5 px-2 text-slate-300">{r.refl}</td>
+                  <td className="py-1.5 px-2 text-slate-400">{r.note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="glass-panel p-4 border border-amber-500/20 bg-amber-500/5">
+          <p className="text-xs font-bold text-amber-400 mb-2">Connector & Cable Loss for 802.11</p>
+          <div className="grid sm:grid-cols-3 gap-2 text-xs text-slate-400">
+            <div><span className="text-white font-semibold">SMA/RP-SMA:</span> Indoor AP antennas, low power ({'<'} 1W). Most common on SOHO gear.</div>
+            <div><span className="text-white font-semibold">N-Type:</span> Outdoor APs, sector antennas. Weather-sealed, handles up to 500W.</div>
+            <div><span className="text-white font-semibold">TNC:</span> Vibration-resistant for outdoor/mobile deployments.</div>
+          </div>
+        </div>
+
+        <div className="bg-surface-900/60 rounded-xl p-4 space-y-1">
+          <p className="text-xs font-bold text-slate-300">Typical Cable Loss (LMR-400 per 100ft)</p>
+          <div className="flex gap-4 flex-wrap text-xs">
+            {[{ f: '2.4 GHz', loss: '3.9 dB' }, { f: '5 GHz', loss: '5.6 dB' }, { f: '6 GHz', loss: '6.3 dB' }].map(c => (
+              <span key={c.f}><span className="text-slate-400">{c.f}:</span> <span className="font-bold text-amber-400">{c.loss}</span></span>
+            ))}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">Keep cable runs as short as possible — every dB of cable loss reduces your effective EIRP.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Chapter8 Export ─────────────────────────────────────────────────────
 
 const CH8_TAB_SUBTOPICS: Record<Tab, string[]> = {
@@ -433,7 +556,7 @@ export function Chapter8() {
           {activeTab === 'Fundamentals'       && <FundamentalsTab />}
           {activeTab === 'Antenna Types'      && <AntennaGallery />}
           {activeTab === 'Radiation Patterns' && <RadiationPatternPlot />}
-          {activeTab === 'Polarization'       && <PolarizationDemo />}
+          {activeTab === 'Polarization'       && <><PolarizationDemo /><VSWRSection /></>}
           {activeTab === 'Beamforming'        && <BeamformingVisualizer />}
         </motion.div>
       </AnimatePresence>

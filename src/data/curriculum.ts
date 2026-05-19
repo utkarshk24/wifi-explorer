@@ -6,7 +6,7 @@ export const CHAPTERS: Chapter[] = [
     id: 'ch16',
     number: 1,
     title: 'Computer Networks & Devices',
-    subtitle: 'Devices, Network Types, Internet, Firewall & ARP',
+    subtitle: 'Devices, Network Types, Internet & Firewall',
     icon: '🌐',
     color: 'band24',
     accentClass: 'text-band24',
@@ -17,7 +17,6 @@ export const CHAPTERS: Chapter[] = [
       { id: 'net_types',   label: 'Network Types — PAN, LAN, CAN, MAN, WAN',                          completed: false },
       { id: 'internet',    label: 'Introduction to the Internet & How It Works',                       completed: false },
       { id: 'firewall',    label: 'Firewall — Packet Filter, Stateful & Application Layer',            completed: false },
-      { id: 'arp_proto',   label: 'ARP — Address Resolution Protocol (Request & Reply)',               completed: false },
     ],
   },
 

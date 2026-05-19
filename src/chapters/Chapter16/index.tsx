@@ -5,7 +5,7 @@ import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { CHAPTERS } from '../../data/curriculum';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch16')!;
-const TABS = ['Network Devices', 'Network Types', 'Internet & Routing', 'Firewall', 'ARP Protocol'] as const;
+const TABS = ['Network Devices', 'Network Types', 'Internet & Routing', 'Firewall'] as const;
 type Tab = typeof TABS[number];
 
 // ─── Tab 1: Network Devices ───────────────────────────────────────────────────
@@ -613,165 +613,6 @@ function FirewallTab() {
   );
 }
 
-// ─── Tab 5: ARP Protocol ─────────────────────────────────────────────────────
-
-const ARP_HOSTS = [
-  { id: 'A', ip: '192.168.1.1',  mac: 'AA:AA:AA:AA:AA:01', color: '#06b6d4', x: 60 },
-  { id: 'B', ip: '192.168.1.2',  mac: 'BB:BB:BB:BB:BB:02', color: '#a855f7', x: 180 },
-  { id: 'C', ip: '192.168.1.3',  mac: 'CC:CC:CC:CC:CC:03', color: '#10b981', x: 300 },
-  { id: 'D', ip: '192.168.1.4',  mac: 'DD:DD:DD:DD:DD:04', color: '#f59e0b', x: 420 },
-];
-
-interface ArpStep {
-  label: string; from: string; to: string; type: 'broadcast' | 'unicast'; msg: string; color: string;
-}
-
-const ARP_STEPS: ArpStep[] = [
-  { label: 'ARP Request (Broadcast)', from: 'A', to: 'ALL', type: 'broadcast', color: '#f97316',
-    msg: 'Who has 192.168.1.2? Tell 192.168.1.1 (src MAC: AA:AA:AA:AA:AA:01) — sent to FF:FF:FF:FF:FF:FF' },
-  { label: 'ARP Reply (Unicast)', from: 'B', to: 'A', type: 'unicast', color: '#10b981',
-    msg: '192.168.1.2 is at BB:BB:BB:BB:BB:02 — sent directly (unicast) to AA:AA:AA:AA:AA:01' },
-  { label: 'ARP Cache Updated', from: 'A', to: 'A', type: 'unicast', color: '#06b6d4',
-    msg: 'Host A stores: 192.168.1.2 → BB:BB:BB:BB:BB:02 in ARP cache (TTL ~20 min)' },
-];
-
-function ARPTab() {
-  const [step, setStep] = useState(-1);
-  const [arpCache, setArpCache] = useState<Array<{ ip: string; mac: string; color: string }>>([]);
-  const [running, setRunning] = useState(false);
-
-  const runARP = useCallback(async () => {
-    setRunning(true);
-    setStep(0); setArpCache([]);
-    await new Promise(r => setTimeout(r, 1200));
-    setStep(1);
-    await new Promise(r => setTimeout(r, 1200));
-    setStep(2);
-    setArpCache([{ ip: '192.168.1.2', mac: 'BB:BB:BB:BB:BB:02', color: '#a855f7' }]);
-    await new Promise(r => setTimeout(r, 1500));
-    setStep(-1);
-    setRunning(false);
-  }, []);
-
-  const W = 480, H = 110;
-
-  return (
-    <div className="space-y-5">
-      <div className="glass-panel p-5 border-glow-blue space-y-3">
-        <h3 className="font-bold text-white">ARP — Address Resolution Protocol (RFC 826)</h3>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          ARP resolves a known <span className="text-cyan-400 font-medium">IP address</span> to an unknown{' '}
-          <span className="text-purple-400 font-medium">MAC address</span>. Without the MAC address, a device
-          cannot construct an Ethernet frame to deliver the IP packet on the local network.
-        </p>
-        <button onClick={runARP} disabled={running}
-          className={`px-4 py-2 rounded-lg text-sm font-bold border transition-all ${
-            running ? 'opacity-50 cursor-not-allowed border-slate-700 text-slate-500'
-            : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 hover:bg-cyan-500/30'
-          }`}>
-          {running ? '⏳ Running ARP...' : '▶ Simulate ARP Resolution'}
-        </button>
-      </div>
-
-      {/* LAN diagram */}
-      <div className="glass-panel p-4 border-glow-blue">
-        <p className="text-xs font-bold text-slate-400 mb-2">LAN Topology (192.168.1.0/24)</p>
-        <div className="rounded-xl overflow-hidden border border-slate-800" style={{ background: '#060b16' }}>
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
-            {/* Bus */}
-            <line x1="40" y1="65" x2={W - 40} y2="65" stroke="#334155" strokeWidth="2" />
-
-            {/* Hosts */}
-            {ARP_HOSTS.map(h => (
-              <g key={h.id}>
-                <line x1={h.x} y1="45" x2={h.x} y2="65" stroke="#334155" strokeWidth="1" />
-                <rect x={h.x - 22} y="20" width="44" height="25" rx="4"
-                  fill={h.color + '20'} stroke={h.color + '50'} strokeWidth="1" />
-                <text x={h.x} y="35" textAnchor="middle" fontSize="10">💻</text>
-                <text x={h.x} y="57" textAnchor="middle" fontSize="6.5" fill={h.color}>{h.id}</text>
-                <text x={h.x} y="78" textAnchor="middle" fontSize="6" fill="#475569">{h.ip}</text>
-                <text x={h.x} y="88" textAnchor="middle" fontSize="5.5" fill="#334155">{h.mac.slice(0, 8)}…</text>
-              </g>
-            ))}
-
-            {/* ARP broadcast animation */}
-            {step === 0 && ARP_HOSTS.slice(1).map((h, i) => (
-              <motion.line key={h.id} x1={ARP_HOSTS[0].x} y1={65} x2={h.x} y2={65}
-                stroke="#f97316" strokeWidth="2" strokeDasharray="4 3"
-                initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, delay: i * 0.15 }} />
-            ))}
-            {step === 0 && (
-              <motion.text x={W / 2} y="105" textAnchor="middle" fontSize="7" fill="#f97316"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                ARP Request → FF:FF:FF:FF:FF:FF (Broadcast)
-              </motion.text>
-            )}
-
-            {/* ARP reply animation */}
-            {step === 1 && (
-              <>
-                <motion.line x1={ARP_HOSTS[1].x} y1={65} x2={ARP_HOSTS[0].x} y2={65}
-                  stroke="#10b981" strokeWidth="2"
-                  initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                  transition={{ duration: 0.7 }} />
-                <motion.text x={W / 2} y="105" textAnchor="middle" fontSize="7" fill="#10b981"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  ARP Reply → AA:AA:AA:AA:AA:01 (Unicast)
-                </motion.text>
-              </>
-            )}
-
-            {step === 2 && (
-              <motion.text x={ARP_HOSTS[0].x} y="105" textAnchor="middle" fontSize="7" fill="#06b6d4"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                ARP Cache Updated ✓
-              </motion.text>
-            )}
-          </svg>
-        </div>
-
-        {step >= 0 && (
-          <motion.div key={step} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-3 p-3 rounded-xl border text-xs" style={{ borderColor: ARP_STEPS[step]?.color + '40', background: ARP_STEPS[step]?.color + '0a' }}>
-            <p className="font-bold mb-1" style={{ color: ARP_STEPS[step]?.color }}>{ARP_STEPS[step]?.label}</p>
-            <p className="text-slate-300 font-mono">{ARP_STEPS[step]?.msg}</p>
-          </motion.div>
-        )}
-      </div>
-
-      {arpCache.length > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-panel p-4 border-glow-blue">
-          <p className="text-xs font-bold text-slate-400 mb-2">Host A — ARP Cache</p>
-          <table className="text-xs w-full">
-            <thead><tr className="border-b border-slate-800"><th className="pb-1 text-left text-slate-500 pr-4">IP Address</th><th className="pb-1 text-left text-slate-500 pr-4">MAC Address</th><th className="pb-1 text-left text-slate-500">Type</th></tr></thead>
-            <tbody>
-              {arpCache.map(e => (
-                <tr key={e.ip}><td className="py-1 pr-4 font-mono" style={{ color: e.color }}>{e.ip}</td><td className="py-1 pr-4 font-mono text-slate-300">{e.mac}</td><td className="py-1 text-slate-400">dynamic (TTL 20min)</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </motion.div>
-      )}
-
-      <div className="grid grid-cols-2 gap-4 text-xs">
-        {[
-          { title: 'Gratuitous ARP', icon: '📣', color: '#f59e0b', desc: 'A host sends an ARP Reply for its own IP without a prior request. Used to update neighbors\' ARP caches after IP change or to detect IP conflicts during boot.' },
-          { title: 'ARP Spoofing', icon: '⚠️', color: '#ef4444', desc: 'Attacker sends forged ARP Replies, poisoning the ARP cache of victims to redirect traffic through themselves (Man-in-the-Middle attack). Mitigated by Dynamic ARP Inspection (DAI) on switches.' },
-        ].map(t => (
-          <div key={t.title} className="glass-panel p-4 border rounded-xl space-y-1.5" style={{ borderColor: t.color + '40' }}>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{t.icon}</span>
-              <span className="font-bold text-sm text-white">{t.title}</span>
-            </div>
-            <p className="text-slate-400 leading-relaxed">{t.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function Chapter16() {
@@ -781,7 +622,7 @@ export function Chapter16() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <ChapterHeader chapter={CHAPTER}
-        description="Foundation of modern networking: understand every device in a network, how different network types are scoped, how the Internet routes packets globally, how firewalls filter traffic, and how ARP resolves IP to MAC addresses." />
+        description="Foundation of modern networking: understand every device in a network, how different network types are scoped, how the Internet routes packets globally, and how firewalls filter traffic." />
       <div className="flex gap-1 mb-6 border-b border-slate-800 overflow-x-auto">
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
@@ -796,7 +637,6 @@ export function Chapter16() {
           {activeTab === 'Network Types'      && <NetworkTypesTab />}
           {activeTab === 'Internet & Routing' && <InternetTab />}
           {activeTab === 'Firewall'           && <FirewallTab />}
-          {activeTab === 'ARP Protocol'       && <ARPTab />}
         </motion.div>
       </AnimatePresence>
     </div>
