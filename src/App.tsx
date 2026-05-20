@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppProvider, useApp } from './context/AppContext';
+import { CHAPTERS } from './data/curriculum';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopBar } from './components/layout/TopBar';
 import { Chapter0 } from './chapters/Chapter0';
@@ -47,10 +48,27 @@ const CHAPTER_COMPONENTS = {
   sandbox: Sandbox,
 };
 
+// Extend window type for gtag
+declare global { interface Window { gtag?: (...args: unknown[]) => void } }
+
 function AppShell() {
   const { activeChapter } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const ActiveChapter = CHAPTER_COMPONENTS[activeChapter];
+
+  // Fire a virtual page_view each time the user opens a chapter
+  useEffect(() => {
+    const chapter = CHAPTERS.find(c => c.id === activeChapter);
+    const title = chapter
+      ? `Ch.${chapter.number} — ${chapter.title}`
+      : 'Sandbox';
+    const path = `/${activeChapter}`;
+    window.gtag?.('event', 'page_view', {
+      page_title: title,
+      page_path: path,
+      page_location: window.location.origin + path,
+    });
+  }, [activeChapter]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-900 dark">
