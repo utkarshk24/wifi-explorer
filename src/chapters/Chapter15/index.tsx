@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeContent, ModeBadge } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch15')!;
 const TABS = ['CSMA/CD Mechanics', 'Full-Duplex', 'Flow Control'] as const;
@@ -702,6 +703,7 @@ function FlowControlTab() {
 export function Chapter15() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('CSMA/CD Mechanics');
+  useSubtopicNav(CH15_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     (CH15_TAB_SUBTOPICS[activeTab] ?? []).forEach(id => markComplete('ch15', id));

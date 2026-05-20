@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeContent, ModeBadge } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch13')!;
 const TABS = ['Copper Media', 'Fiber Optics', 'Line Coding'] as const;
@@ -576,6 +577,7 @@ function LineCodingTab() {
 export function Chapter13() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('Copper Media');
+  useSubtopicNav(CH13_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     (CH13_TAB_SUBTOPICS[activeTab] ?? []).forEach(id => markComplete('ch13', id));

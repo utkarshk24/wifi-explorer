@@ -4,10 +4,11 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeBadge, ModeContent } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch7')!;
 
-const TABS = ['Timeline', 'PHY Standards', 'Amendments'] as const;
+const TABS = ['Timeline', 'PHY Standards', 'Amendments', 'Wi-Fi Generations'] as const;
 type Tab = typeof TABS[number];
 
 // ─── Protocol Data ────────────────────────────────────────────────────────────
@@ -255,9 +256,10 @@ const CAT_COLORS: Record<string, string> = {
 };
 
 const CH7_TAB_SUBTOPICS: Record<Tab, string[]> = {
-  'Timeline':      ['dot11_legacy', 'dot11b', 'dot11a', 'dot11g', 'dot11n', 'dot11ac', 'dot11ax', 'dot11be', 'dot11bn'],
-  'PHY Standards': ['dot11_legacy', 'dot11b', 'dot11a', 'dot11g', 'dot11n', 'dot11ac', 'dot11ax', 'dot11be', 'dot11bn'],
-  'Amendments':    ['dot11d', 'dot11e', 'dot11h', 'dot11i', 'dot11k', 'dot11r', 'dot11s', 'dot11u', 'dot11v', 'dot11w', 'dot11p', 'dot11ad', 'dot11ay'],
+  'Timeline':          ['dot11_legacy', 'dot11b', 'dot11a', 'dot11g', 'dot11n', 'dot11ac', 'dot11ax', 'dot11be', 'dot11bn'],
+  'PHY Standards':     ['dot11_legacy', 'dot11b', 'dot11a', 'dot11g', 'dot11n', 'dot11ac', 'dot11ax', 'dot11be', 'dot11bn'],
+  'Amendments':        ['dot11d', 'dot11e', 'dot11h', 'dot11i', 'dot11k', 'dot11r', 'dot11s', 'dot11u', 'dot11v', 'dot11w', 'dot11p', 'dot11ad', 'dot11ay'],
+  'Wi-Fi Generations': ['dot11n', 'dot11ac', 'dot11ax', 'dot11be'],
 };
 
 // ─── Tab 1: Timeline ──────────────────────────────────────────────────────────
@@ -415,7 +417,6 @@ function TimelineTab() {
           </motion.div>
         </AnimatePresence>
       </div>
-      <MLOHighway />
     </div>
   );
 }
@@ -562,11 +563,752 @@ function AmendmentsTab() {
   );
 }
 
+// ─── Tab 4: Wi-Fi Generations ────────────────────────────────────────────────
+
+const WIFI_GEN_TABS = ['Wi-Fi 4 (802.11n)', 'Wi-Fi 5 (802.11ac)', 'Wi-Fi 6 / 6E (802.11ax)', 'Wi-Fi 7 (802.11be)'] as const;
+type WifiGenTab = typeof WIFI_GEN_TABS[number];
+
+const GEN_META: Record<WifiGenTab, { year: number; color: string; icon: string; badge: string; headline: string }> = {
+  'Wi-Fi 4 (802.11n)':       { year: 2009, color: '#38bdf8', icon: '📶', badge: 'HT',  headline: 'The Foundation of MIMO' },
+  'Wi-Fi 5 (802.11ac)':      { year: 2013, color: '#a855f7', icon: '🚀', badge: 'VHT', headline: 'The Gigaspeed Push' },
+  'Wi-Fi 6 / 6E (802.11ax)': { year: 2021, color: '#10b981', icon: '⚡', badge: 'HE',  headline: 'Density & Efficiency' },
+  'Wi-Fi 7 (802.11be)':      { year: 2024, color: '#f59e0b', icon: '🔥', badge: 'EHT', headline: 'Multi-Link & Ultra-Wide' },
+};
+
+// ── Wi-Fi 4 interactive animations ──────────────────────────────────────────
+
+function MIMOViz() {
+  const [streams, setStreams] = useState(2);
+  const COLORS = ['#38bdf8', '#a855f7', '#10b981', '#f59e0b'];
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">MIMO — Spatial Streams</h4>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-slate-500">Streams:</span>
+          {[1, 2, 3, 4].map(n => (
+            <button key={n} onClick={() => setStreams(n)}
+              className="w-7 h-7 rounded text-xs font-bold border transition-all"
+              style={n <= streams
+                ? { background: '#38bdf820', borderColor: '#38bdf870', color: '#38bdf8' }
+                : { borderColor: '#334155', color: '#475569' }}>
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-3 h-28">
+        <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-xl flex-shrink-0">📡</div>
+        <div className="flex-1 relative h-full">
+          {COLORS.slice(0, streams).map((color, i) => {
+            const pct = ((i + 0.5) / streams) * 100;
+            return (
+              <div key={i} className="absolute w-full flex items-center"
+                style={{ top: `${pct}%`, transform: 'translateY(-50%)' }}>
+                <div className="w-full h-px" style={{ background: `linear-gradient(90deg,${color}40,${color}90)` }} />
+                <motion.div className="absolute w-6 h-5 rounded flex items-center justify-center text-xs font-bold"
+                  style={{ background: color + '25', border: `1px solid ${color}60`, color }}
+                  animate={{ left: ['0%', '96%'] }}
+                  transition={{ duration: 1.3 + i * 0.15, delay: i * 0.2, repeat: Infinity, ease: 'linear' }}>
+                  {i + 1}
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-xl flex-shrink-0">💻</div>
+      </div>
+      <div className="flex items-center justify-between bg-slate-900/60 rounded-lg px-3 py-2">
+        <span className="text-xs text-slate-400">{streams} stream{streams > 1 ? 's' : ''} × 150 Mbps each</span>
+        <motion.span key={streams} initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          className="text-sm font-bold" style={{ color: '#38bdf8' }}>
+          ≈ {streams * 150} Mbps
+        </motion.span>
+      </div>
+      <p className="text-xs text-slate-500">Each antenna path carries an independent data stream — like adding extra lanes on a highway.</p>
+    </div>
+  );
+}
+
+function ChannelBondingViz() {
+  const [bonded, setBonded] = useState(false);
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">Channel Bonding</h4>
+        <button onClick={() => setBonded(b => !b)}
+          className="px-3 py-1 rounded text-xs font-bold border transition-all"
+          style={bonded
+            ? { background: '#38bdf820', borderColor: '#38bdf860', color: '#38bdf8' }
+            : { borderColor: '#334155', color: '#94a3b8' }}>
+          {bonded ? '40 MHz bonded ✓' : '20 MHz normal'}
+        </button>
+      </div>
+      <AnimatePresence mode="wait">
+        {bonded ? (
+          <motion.div key="40" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="h-14 rounded-xl flex items-center justify-center text-sm font-bold border-2"
+            style={{ background: '#38bdf815', borderColor: '#38bdf860', color: '#38bdf8' }}>
+            ◀ Ch 36 + Ch 40 — 40 MHz Combined ▶
+          </motion.div>
+        ) : (
+          <motion.div key="20" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="grid grid-cols-2 gap-2">
+            {['Ch 36 · 20 MHz', 'Ch 40 · 20 MHz'].map((label, i) => (
+              <div key={i} className="h-14 rounded-xl flex items-center justify-center text-xs font-bold border"
+                style={{ background: '#1e293b', borderColor: '#334155', color: '#64748b' }}>
+                {label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="grid grid-cols-2 gap-2">
+        {[{ label: 'Bandwidth', val: bonded ? '40 MHz' : '20 MHz' }, { label: 'Peak Rate', val: bonded ? '~300 Mbps' : '~150 Mbps' }].map(f => (
+          <div key={f.label} className="bg-slate-900/60 rounded-lg px-3 py-2">
+            <p className="text-xs text-slate-500">{f.label}</p>
+            <motion.p key={f.val} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-sm font-bold" style={{ color: '#38bdf8' }}>{f.val}</motion.p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AggregationViz() {
+  const [agg, setAgg] = useState(false);
+  const PKTS = ['HTTP', 'ACK', 'DNS', 'TLS'];
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">A-MPDU Frame Aggregation</h4>
+        <button onClick={() => setAgg(a => !a)}
+          className="px-3 py-1 rounded text-xs font-bold border transition-all"
+          style={agg ? { background: '#38bdf820', borderColor: '#38bdf860', color: '#38bdf8' } : { borderColor: '#334155', color: '#94a3b8' }}>
+          {agg ? 'Aggregated ON' : 'No Aggregation'}
+        </button>
+      </div>
+      <AnimatePresence mode="wait">
+        {agg ? (
+          <motion.div key="agg" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
+            <p className="text-xs text-slate-500 mb-2">1 transmission · 4 packets bundled · 1 ACK</p>
+            <div className="flex h-11 rounded-xl overflow-hidden border border-sky-500/40">
+              <div className="bg-sky-900/40 flex items-center px-2 text-xs text-sky-400 font-bold border-r border-sky-500/30">HDR</div>
+              {PKTS.map((p, i) => (
+                <motion.div key={p} initial={{ opacity: 0, scaleX: 0 }} animate={{ opacity: 1, scaleX: 1 }}
+                  transition={{ delay: i * 0.07 }}
+                  className="flex-1 flex items-center justify-center text-xs font-bold border-r border-sky-500/20 last:border-0"
+                  style={{ background: `hsl(${190 + i * 20},55%,18%)`, color: `hsl(${190 + i * 20},80%,70%)` }}>
+                  {p}
+                </motion.div>
+              ))}
+              <div className="bg-sky-900/40 flex items-center px-2 text-xs text-sky-400 font-bold border-l border-sky-500/30">FCS</div>
+            </div>
+            <p className="text-xs text-emerald-400 text-center mt-2">▼ 1 ACK instead of 4 — 75% overhead reduction</p>
+          </motion.div>
+        ) : (
+          <motion.div key="noagg" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
+            <p className="text-xs text-slate-500 mb-2">4 separate transmissions — each needs its own header + ACK + IFS gap</p>
+            {PKTS.map((p, i) => (
+              <div key={p} className="flex items-center gap-1.5">
+                <div className="flex rounded-lg overflow-hidden border border-slate-600/40 h-8 flex-1">
+                  <div className="bg-slate-700/40 flex items-center px-1.5 text-xs text-slate-400 border-r border-slate-600/30">HDR</div>
+                  <div className="flex-1 flex items-center justify-center text-xs font-bold"
+                    style={{ background: `hsl(${190 + i * 20},30%,14%)`, color: `hsl(${190 + i * 20},60%,60%)` }}>{p}</div>
+                </div>
+                <span className="text-xs text-amber-500 flex-shrink-0">ACK</span>
+                <span className="text-xs text-slate-600 flex-shrink-0">IFS</span>
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Wi-Fi 5 interactive animations ──────────────────────────────────────────
+
+function MUMIMOViz() {
+  const [muMode, setMuMode] = useState<'su' | 'mu'>('su');
+  const CLIENTS = [
+    { color: '#a855f7', icon: '💻' },
+    { color: '#06b6d4', icon: '📱' },
+    { color: '#10b981', icon: '📲' },
+    { color: '#f59e0b', icon: '📺' },
+  ];
+  const [suIdx, setSuIdx] = useState(0);
+  useEffect(() => {
+    if (muMode !== 'su') return;
+    const t = setInterval(() => setSuIdx(i => (i + 1) % CLIENTS.length), 900);
+    return () => clearInterval(t);
+  }, [muMode]);
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">Downlink MU-MIMO</h4>
+        <div className="flex rounded-lg overflow-hidden border border-slate-700">
+          {(['su', 'mu'] as const).map(m => (
+            <button key={m} onClick={() => setMuMode(m)}
+              className="px-3 py-1.5 text-xs font-bold transition-all"
+              style={muMode === m ? { background: '#a855f720', color: '#a855f7' } : { color: '#64748b' }}>
+              {m === 'su' ? 'SU-MIMO' : 'MU-MIMO'}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-stretch gap-4">
+        <div className="flex flex-col items-center justify-center gap-1 flex-shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-2xl">📡</div>
+          <span className="text-xs text-slate-500">AP</span>
+        </div>
+        <div className="flex-1 flex flex-col justify-around gap-2">
+          {CLIENTS.map((c, i) => {
+            const active = muMode === 'mu' || suIdx === i;
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <div className="flex-1 relative h-6 flex items-center">
+                  <motion.div className="w-full h-0.5 rounded-full"
+                    animate={{ opacity: active ? 1 : 0.1, scaleX: active ? 1 : 0.15 }}
+                    transition={{ duration: 0.3 }}
+                    style={{ background: `linear-gradient(90deg,${c.color}50,${c.color})`, transformOrigin: 'left' }} />
+                  {active && (
+                    <motion.div className="absolute w-5 h-4 rounded flex items-center justify-center text-xs"
+                      style={{ background: c.color + '30', border: `1px solid ${c.color}60`, color: c.color, top: '50%', transform: 'translateY(-50%)' }}
+                      animate={{ left: ['0%', '94%'] }}
+                      transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}>
+                      ▶
+                    </motion.div>
+                  )}
+                </div>
+                <motion.div className="w-10 h-10 rounded-xl border flex items-center justify-center text-lg flex-shrink-0"
+                  animate={{ borderColor: active ? c.color + '80' : '#33415550', background: active ? c.color + '15' : 'transparent', opacity: active ? 1 : 0.3 }}
+                  transition={{ duration: 0.3 }}>
+                  {c.icon}
+                </motion.div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <p className="text-xs text-center font-semibold" style={{ color: muMode === 'mu' ? '#10b981' : '#f59e0b' }}>
+        {muMode === 'su' ? '⏱ SU-MIMO: one client at a time — others wait' : '✅ MU-MIMO: all 4 clients served simultaneously'}
+      </p>
+    </div>
+  );
+}
+
+function BeamformingViz() {
+  const [angleDeg, setAngleDeg] = useState(60);
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  const APX = 80; const APY = 88; const R = 80; const hw = 0.42;
+  const cx = APX + R * Math.sin(rad);
+  const cy = APY - R * Math.cos(rad);
+  const bx1 = APX + (R + 18) * Math.sin(rad - hw);
+  const by1 = APY - (R + 18) * Math.cos(rad - hw);
+  const bx2 = APX + (R + 18) * Math.sin(rad + hw);
+  const by2 = APY - (R + 18) * Math.cos(rad + hw);
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">Explicit Beamforming</h4>
+        <span className="text-xs text-slate-500">Drag slider → beam follows client</span>
+      </div>
+      <div className="flex gap-4 items-center">
+        <div className="flex-shrink-0 w-1/2">
+          <svg width="100%" viewBox="0 0 220 176">
+            <circle cx={APX} cy={APY} r={68} fill="none" stroke="#334155" strokeWidth="1" strokeDasharray="4 3" />
+            <path d={`M ${APX} ${APY} L ${bx1} ${by1} A ${R + 18} ${R + 18} 0 0 1 ${bx2} ${by2} Z`}
+              fill="#a855f722" stroke="#a855f748" strokeWidth="1" />
+            <line x1={APX} y1={APY} x2={cx} y2={cy} stroke="#a855f7" strokeWidth="1.5" strokeDasharray="5 3" />
+            <circle cx={APX} cy={APY} r={18} fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+            <text x={APX} y={APY + 5} textAnchor="middle" fontSize="15">📡</text>
+            <circle cx={cx} cy={cy} r={16} fill="#1e293b" stroke="#a855f770" strokeWidth="1.5" />
+            <text x={cx} y={cy + 5} textAnchor="middle" fontSize="12">💻</text>
+          </svg>
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="bg-slate-900/60 rounded-xl px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 mb-1.5">
+              <p className="text-xs text-slate-400 font-medium">Focused beam gain</p>
+              <div className="text-right flex-shrink-0">
+                <p className="text-xs text-slate-500">Angle</p>
+                <p className="text-sm font-bold text-purple-400">{angleDeg}°</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-purple-500/70" style={{ width: '80%' }} />
+              </div>
+              <span className="text-xs font-bold text-purple-400 whitespace-nowrap">+6 dBi</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">vs omnidirectional (dashed circle)</p>
+          </div>
+          <input type="range" min={0} max={180} value={angleDeg} onChange={e => setAngleDeg(+e.target.value)}
+            className="w-full accent-purple-500" />
+          <p className="text-xs text-slate-500">AP adjusts antenna phase to concentrate signal toward client</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function QAMCompareViz() {
+  const [qam, setQam] = useState<64 | 256>(256);
+  const size = qam === 64 ? 8 : 16;
+  const bits = qam === 64 ? 6 : 8;
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">QAM Constellation</h4>
+        <div className="flex rounded-lg overflow-hidden border border-slate-700">
+          {([64, 256] as const).map(q => (
+            <button key={q} onClick={() => setQam(q)}
+              className="px-3 py-1.5 text-xs font-bold transition-all"
+              style={qam === q ? { background: '#a855f720', color: '#a855f7' } : { color: '#64748b' }}>
+              {q}-QAM
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex justify-center py-1">
+        <AnimatePresence mode="wait">
+          <motion.div key={qam} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="grid gap-0.5"
+            style={{ gridTemplateColumns: `repeat(${size}, ${size === 8 ? '14px' : '9px'})` }}>
+            {Array.from({ length: size * size }).map((_, idx) => {
+              const r = Math.floor(idx / size) / (size - 1);
+              const g = (idx % size) / (size - 1);
+              return (
+                <div key={idx} className="rounded-full"
+                  style={{ width: size === 8 ? 14 : 9, height: size === 8 ? 14 : 9,
+                    background: `rgba(${Math.round(100 + 148 * g)},${Math.round(50 + 100 * (1 - r))},${Math.round(247 * (1 - g) + 80 * g)},0.85)` }} />
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {[
+          { l: 'Points', v: String(qam) },
+          { l: 'Bits / symbol', v: `${bits} bits` },
+          { l: 'vs 64-QAM', v: qam === 64 ? 'baseline' : '+33% speed' },
+        ].map(f => (
+          <div key={f.l} className="bg-slate-900/60 rounded-lg py-2 px-1">
+            <p className="text-xs text-slate-500">{f.l}</p>
+            <p className="text-sm font-bold" style={{ color: '#a855f7' }}>{f.v}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Wi-Fi 6 interactive animations ──────────────────────────────────────────
+
+const OFDMA_USERS = [
+  { id: 'IoT',   color: '#10b981', tones: 26,  bw: '2 MHz'  },
+  { id: 'VoIP',  color: '#06b6d4', tones: 52,  bw: '4 MHz'  },
+  { id: 'Video', color: '#a855f7', tones: 106, bw: '8 MHz'  },
+  { id: 'Data',  color: '#f59e0b', tones: 242, bw: '20 MHz' },
+];
+
+function OFDMAViz() {
+  const [ofdma, setOFDMA] = useState(true);
+  const total = OFDMA_USERS.reduce((s, u) => s + u.tones, 0);
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">OFDMA — Resource Units</h4>
+        <button onClick={() => setOFDMA(o => !o)}
+          className="px-3 py-1 rounded text-xs font-bold border transition-all"
+          style={ofdma ? { background: '#10b98120', borderColor: '#10b98160', color: '#10b981' } : { borderColor: '#334155', color: '#94a3b8' }}>
+          {ofdma ? 'OFDMA (multi-user)' : 'OFDM (single user)'}
+        </button>
+      </div>
+      <AnimatePresence mode="wait">
+        {ofdma ? (
+          <motion.div key="on" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+            <p className="text-xs text-slate-500">80 MHz channel split into Resource Units — all users transmit together</p>
+            <div className="flex h-12 rounded-xl overflow-hidden border border-slate-700/50">
+              {OFDMA_USERS.map((u, i) => (
+                <motion.div key={u.id} initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: i * 0.07 }}
+                  className="flex items-center justify-center text-xs font-bold border-r last:border-0"
+                  style={{ flex: u.tones / total, background: u.color + '30', borderColor: u.color + '30', color: u.color }}>
+                  {u.id}
+                </motion.div>
+              ))}
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {OFDMA_USERS.map(u => (
+                <span key={u.id} className="flex items-center gap-1 px-2 py-0.5 rounded text-xs"
+                  style={{ background: u.color + '15', color: u.color }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: u.color }} />
+                  {u.id} {u.bw}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div key="off" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
+            <p className="text-xs text-slate-500">Entire 80 MHz goes to one user at a time — others wait in queue</p>
+            <div className="flex h-12 rounded-xl overflow-hidden border border-slate-700/50">
+              {OFDMA_USERS.map((u, i) => (
+                <div key={u.id} className="flex-1 flex items-center justify-center text-xs font-bold border-r border-slate-700/30 last:border-0"
+                  style={{ background: i === 0 ? u.color + '30' : '#1e293b', color: i === 0 ? u.color : '#475569' }}>
+                  {i === 0 ? u.id : '⏳'}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-amber-400">⚠️ 3 of 4 users idle — waiting for their turn</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function TWTViz() {
+  const DEVS = [
+    { label: 'Sensor A',   color: '#10b981', every: 4,  off: 0 },
+    { label: 'Sensor B',   color: '#06b6d4', every: 4,  off: 1 },
+    { label: 'Thermostat', color: '#a855f7', every: 8,  off: 2 },
+    { label: 'Door Lock',  color: '#f59e0b', every: 12, off: 3 },
+  ];
+  const SLOTS = 24;
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <h4 className="text-sm font-bold text-white">Target Wake Time (TWT)</h4>
+      <p className="text-xs text-slate-500">Each IoT device wakes on its pre-negotiated schedule — radio off between windows</p>
+      <div className="space-y-2">
+        {DEVS.map(d => (
+          <div key={d.label} className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 w-20 flex-shrink-0 truncate">{d.label}</span>
+            <div className="flex flex-1 gap-px h-5 rounded overflow-hidden">
+              {Array.from({ length: SLOTS }).map((_, t) => {
+                const awake = (t + d.off) % d.every === 0;
+                return (
+                  <motion.div key={t} className="flex-1 rounded-sm"
+                    style={{ background: awake ? d.color : '#1e293b40' }}
+                    animate={awake ? { opacity: [0.7, 1, 0.7] } : {}}
+                    transition={awake ? { duration: 1.4, repeat: Infinity, delay: t * 0.04 } : {}} />
+                );
+              })}
+            </div>
+            <span className="text-xs flex-shrink-0" style={{ color: d.color }}>/{d.every}s</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between text-xs text-slate-600 px-[88px]">
+        <span>0s</span><span>12s</span><span>24s</span>
+      </div>
+      <p className="text-xs text-emerald-400 text-center">Colored = radio awake · Dark = sleeping → up to 7× battery improvement</p>
+    </div>
+  );
+}
+
+function BSSColoringViz() {
+  const [colored, setColored] = useState(false);
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">BSS Coloring — Spatial Reuse</h4>
+        <button onClick={() => setColored(c => !c)}
+          className="px-3 py-1 rounded text-xs font-bold border transition-all"
+          style={colored ? { background: '#10b98120', borderColor: '#10b98160', color: '#10b981' } : { borderColor: '#334155', color: '#94a3b8' }}>
+          {colored ? 'BSS Color ON' : 'Legacy (no color)'}
+        </button>
+      </div>
+      <div className="flex gap-4 items-center">
+        <div className="flex-shrink-0 w-1/2">
+          <svg width="100%" viewBox="0 0 300 160">
+            {[{ x: 90, y: 82, color: '#10b981' }, { x: 165, y: 46, color: '#ef4444' }, { x: 165, y: 118, color: '#f59e0b' }].map((n, i) => (
+              <circle key={i} cx={n.x} cy={n.y} r={56} fill="none" stroke={n.color} strokeWidth="1" strokeDasharray="5 3" strokeOpacity="0.35" />
+            ))}
+            <motion.circle r={8} fill="#ef4444" opacity={0.85}
+              animate={{ cx: [165, 127, 90], cy: [46, 64, 82] }}
+              transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.8 }} />
+            {[
+              { x: 90,  y: 82,  color: '#10b981', label: 'Your AP',    tag: '#3'  },
+              { x: 165, y: 46,  color: '#ef4444', label: 'Neighbor 1', tag: '#7'  },
+              { x: 165, y: 118, color: '#f59e0b', label: 'Neighbor 2', tag: '#12' },
+            ].map(n => (
+              <g key={n.label}>
+                <circle cx={n.x} cy={n.y} r={18} fill="#1e293b" stroke={colored ? n.color : '#475569'} strokeWidth={colored ? 1.8 : 1} />
+                <text x={n.x} y={n.y + 5} textAnchor="middle" fontSize="14">📡</text>
+                {colored && <rect x={n.x + 20} y={n.y - 28} width={26} height={16} rx="5" fill={n.color + '30'} stroke={n.color} strokeWidth="1.2" />}
+                {colored && <text x={n.x + 33} y={n.y - 17} textAnchor="middle" fill={n.color} fontSize="10" fontWeight="bold">{n.tag}</text>}
+                <text x={n.x} y={n.y + 34} textAnchor="middle" fill="#64748b" fontSize="9">{n.label}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+        <div className="flex-1 space-y-2">
+          <AnimatePresence mode="wait">
+            {colored ? (
+              <motion.div key="ok" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold"
+                style={{ background: '#10b98115', border: '1px solid #10b98140', color: '#10b981' }}>
+                ✓ diff color → ignore, TX anyway
+              </motion.div>
+            ) : (
+              <motion.div key="wait" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold"
+                style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444' }}>
+                ⚠️ Channel busy — must wait!
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <p className="text-xs text-slate-500">
+            {colored ? 'Color tags let APs distinguish their own traffic from neighbor traffic' : 'Without coloring, all APs on the same channel block each other'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Wi-Fi 7 interactive animations ──────────────────────────────────────────
+
+function PreamblePuncturingViz() {
+  const BLOCKS = ['36', '40', '44', '48', '52', '56', '60', '64'];
+  const [blocked, setBlocked] = useState<Set<number>>(new Set([2, 5]));
+  const toggle = (i: number) => setBlocked(prev => {
+    const next = new Set(prev);
+    next.has(i) ? next.delete(i) : next.add(i);
+    return next;
+  });
+  const activeCount = BLOCKS.length - blocked.size;
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-white">Preamble Puncturing</h4>
+        <span className="text-xs text-slate-500">Click sub-channels to block them</span>
+      </div>
+      <p className="text-xs text-slate-400">Legacy device or radar occupies a 20 MHz slice. Wi-Fi 7 punches it out and keeps the rest.</p>
+      <div className="grid grid-cols-8 gap-1">
+        {BLOCKS.map((ch, i) => {
+          const isBlocked = blocked.has(i);
+          return (
+            <button key={i} onClick={() => toggle(i)}
+              className="flex flex-col items-center gap-0.5 py-2 rounded-lg border text-xs transition-all"
+              style={isBlocked
+                ? { background: '#ef444420', borderColor: '#ef444450', color: '#ef4444' }
+                : { background: '#f59e0b12', borderColor: '#f59e0b40', color: '#f59e0b' }}>
+              <span>{isBlocked ? '🚫' : '✅'}</span>
+              <span style={{ fontSize: '9px' }}>{ch}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex h-10 rounded-xl overflow-hidden border border-slate-700/40">
+        {BLOCKS.map((_, i) => {
+          const isBlocked = blocked.has(i);
+          return (
+            <motion.div key={i} className="flex-1 flex items-center justify-center text-xs font-bold border-r border-slate-700/20 last:border-0"
+              animate={{ background: isBlocked ? '#ef444425' : '#f59e0b18' }}>
+              {isBlocked && <span style={{ color: '#ef4444', fontSize: '10px' }}>PP</span>}
+            </motion.div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {[
+          { l: 'Total BW', v: '160 MHz', c: '#94a3b8' },
+          { l: 'Available', v: `${activeCount * 20} MHz`, c: '#f59e0b' },
+          { l: 'Punctured', v: `${blocked.size * 20} MHz`, c: '#ef4444' },
+        ].map(f => (
+          <div key={f.l} className="bg-slate-900/60 rounded-lg px-2 py-2">
+            <p className="text-xs text-slate-500">{f.l}</p>
+            <motion.p key={f.v} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-sm font-bold" style={{ color: f.c }}>{f.v}</motion.p>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-slate-500">Previous generations discarded the entire wide channel. Wi-Fi 7 keeps transmitting on remaining sub-channels.</p>
+    </div>
+  );
+}
+
+function ChannelWidthViz() {
+  const WIDTHS = [
+    { bw: '20 MHz',  gen: 'Wi-Fi 4',   color: '#38bdf8', pct: 6.25 },
+    { bw: '40 MHz',  gen: 'Wi-Fi 4',   color: '#38bdf8', pct: 12.5 },
+    { bw: '80 MHz',  gen: 'Wi-Fi 5',   color: '#a855f7', pct: 25   },
+    { bw: '160 MHz', gen: 'Wi-Fi 6',   color: '#10b981', pct: 50   },
+    { bw: '320 MHz', gen: 'Wi-Fi 7 ★', color: '#f59e0b', pct: 100  },
+  ];
+  return (
+    <div className="glass-panel p-4 space-y-3">
+      <h4 className="text-sm font-bold text-white">Channel Width Evolution</h4>
+      <div className="space-y-2">
+        {WIDTHS.map((w, i) => (
+          <div key={w.bw} className="flex items-center gap-3">
+            <span className="text-xs font-bold w-16 text-right" style={{ color: w.color }}>{w.bw}</span>
+            <div className="flex-1 h-7 bg-slate-900/60 rounded-lg overflow-hidden">
+              <motion.div className="h-full rounded-lg"
+                initial={{ width: 0 }} animate={{ width: `${w.pct}%` }}
+                transition={{ duration: 0.6, delay: i * 0.08, ease: 'easeOut' }}
+                style={{ background: w.color + '30', border: `1px solid ${w.color}40` }} />
+            </div>
+            <span className="text-xs text-slate-500 w-16">{w.gen}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-slate-500">320 MHz only available in 6 GHz where wide, continuous spectrum blocks exist</p>
+    </div>
+  );
+}
+
+// ── Per-generation content wrappers ─────────────────────────────────────────
+
+function WiFi4Content() {
+  return (
+    <div className="space-y-4">
+      <div className="glass-panel p-4 border" style={{ borderColor: '#38bdf825' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl">📶</span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-white">Wi-Fi 4 (802.11n)</h3>
+              <span className="px-2 py-0.5 rounded text-xs font-bold border" style={{ color: '#38bdf8', borderColor: '#38bdf850', background: '#38bdf815' }}>HT · 2009</span>
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: '#38bdf8' }}>The Foundation of MIMO</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Ratified in 2009, Wi-Fi 4 introduced MIMO, dual-band operation (2.4 &amp; 5 GHz), 40 MHz channel bonding,
+          and frame aggregation — the three pillars that pushed peak throughput from 54 Mbps to 600 Mbps.
+        </p>
+      </div>
+      <MIMOViz />
+      <ChannelBondingViz />
+      <AggregationViz />
+    </div>
+  );
+}
+
+function WiFi5Content() {
+  return (
+    <div className="space-y-4">
+      <div className="glass-panel p-4 border" style={{ borderColor: '#a855f725' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl">🚀</span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-white">Wi-Fi 5 (802.11ac)</h3>
+              <span className="px-2 py-0.5 rounded text-xs font-bold border" style={{ color: '#a855f7', borderColor: '#a855f750', background: '#a855f715' }}>VHT · 2013</span>
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: '#a855f7' }}>The Gigaspeed Push</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Wi-Fi 5 moved exclusively to 5 GHz to escape congestion. 256-QAM, Downlink MU-MIMO (up to 4 simultaneous
+          clients), and standardized beamforming pushed real-world speeds into the gigabit range.
+        </p>
+      </div>
+      <MUMIMOViz />
+      <BeamformingViz />
+      <QAMCompareViz />
+    </div>
+  );
+}
+
+function WiFi6Content() {
+  return (
+    <div className="space-y-4">
+      <div className="glass-panel p-4 border" style={{ borderColor: '#10b98125' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl">⚡</span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-white">Wi-Fi 6 / 6E (802.11ax)</h3>
+              <span className="px-2 py-0.5 rounded text-xs font-bold border" style={{ color: '#10b981', borderColor: '#10b98150', background: '#10b98115' }}>HE · 2021</span>
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: '#10b981' }}>Density &amp; Efficiency</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Wi-Fi 6 optimized for dense environments — stadiums, airports, IoT. OFDMA, BSS Coloring, and TWT
+          transformed Wi-Fi into a multi-user protocol. Wi-Fi 6E extended it to 6 GHz (1200 MHz clean spectrum).
+        </p>
+      </div>
+      <OFDMAViz />
+      <TWTViz />
+      <BSSColoringViz />
+    </div>
+  );
+}
+
+function WiFi7Content() {
+  return (
+    <div className="space-y-4">
+      <div className="glass-panel p-4 border" style={{ borderColor: '#f59e0b25' }}>
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-2xl">🔥</span>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-white">Wi-Fi 7 (802.11be)</h3>
+              <span className="px-2 py-0.5 rounded text-xs font-bold border" style={{ color: '#f59e0b', borderColor: '#f59e0b50', background: '#f59e0b15' }}>EHT · 2024</span>
+            </div>
+            <p className="text-xs mt-0.5" style={{ color: '#f59e0b' }}>Multi-Link &amp; Ultra-Wide</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 leading-relaxed">
+          Wi-Fi 7 targets multi-gigabit performance and deterministic low latency for 8K, VR, and cloud.
+          MLO connects all three bands simultaneously. 320 MHz channels, 4096-QAM, and Preamble Puncturing
+          combine for a 46 Gbps theoretical ceiling.
+        </p>
+      </div>
+      <MLOHighway />
+      <PreamblePuncturingViz />
+      <ChannelWidthViz />
+    </div>
+  );
+}
+
+function WiFiGenerationsTab() {
+  const [activeGen, setActiveGen] = useState<WifiGenTab>('Wi-Fi 4 (802.11n)');
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {WIFI_GEN_TABS.map(gen => {
+          const m = GEN_META[gen];
+          const active = activeGen === gen;
+          return (
+            <button key={gen} onClick={() => setActiveGen(gen)}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all text-center"
+              style={active
+                ? { borderColor: m.color + '80', background: m.color + '15', boxShadow: `0 0 12px ${m.color}20` }
+                : { borderColor: '#1e293b', opacity: 0.6 }}>
+              <span className="text-2xl">{m.icon}</span>
+              <p className="text-xs font-bold leading-tight" style={{ color: m.color }}>{gen.split(' (')[0]}</p>
+              <p className="text-xs text-slate-500 font-mono">{gen.match(/\(([^)]+)\)/)?.[1]}</p>
+              <p className="text-xs text-slate-400">{m.year}</p>
+            </button>
+          );
+        })}
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.div key={activeGen} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+          {activeGen === 'Wi-Fi 4 (802.11n)'       && <WiFi4Content />}
+          {activeGen === 'Wi-Fi 5 (802.11ac)'      && <WiFi5Content />}
+          {activeGen === 'Wi-Fi 6 / 6E (802.11ax)' && <WiFi6Content />}
+          {activeGen === 'Wi-Fi 7 (802.11be)'      && <WiFi7Content />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 export function Chapter7() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('Timeline');
+  useSubtopicNav(CH7_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     CH7_TAB_SUBTOPICS[activeTab].forEach(id => markComplete('ch7', id));
@@ -585,7 +1327,10 @@ export function Chapter7() {
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-all ${
               activeTab === tab ? 'border-band6 text-band6' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
-            {tab === 'Timeline' ? '📅 Timeline' : tab === 'PHY Standards' ? '📡 PHY Standards' : '📋 Amendments'}
+            {tab === 'Timeline' ? '📅 Timeline'
+              : tab === 'PHY Standards' ? '📡 PHY Standards'
+              : tab === 'Amendments' ? '📋 Amendments'
+              : '🚀 Wi-Fi Generations'}
           </button>
         ))}
       </div>
@@ -593,9 +1338,10 @@ export function Chapter7() {
       <AnimatePresence mode="wait">
         <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
-          {activeTab === 'Timeline'      && <TimelineTab />}
-          {activeTab === 'PHY Standards' && <PHYStandardsTab />}
-          {activeTab === 'Amendments'    && <AmendmentsTab />}
+          {activeTab === 'Timeline'          && <TimelineTab />}
+          {activeTab === 'PHY Standards'     && <PHYStandardsTab />}
+          {activeTab === 'Amendments'        && <AmendmentsTab />}
+          {activeTab === 'Wi-Fi Generations' && <WiFiGenerationsTab />}
         </motion.div>
       </AnimatePresence>
     </div>

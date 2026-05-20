@@ -40,6 +40,8 @@ export interface AppContextType {
   activeChapter: ChapterId;
   setActiveChapter: (c: ChapterId) => void;
   markComplete: (chapterId: ChapterId, subTopicId: string) => void; // no-op
+  pendingSubtopic: string | null;
+  setPendingSubtopic: (id: string | null) => void;
 }
 
 // ─── DHCP / DNS Animation Step Types ─────────────────────────────────────────

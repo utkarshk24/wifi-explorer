@@ -5,6 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeBadge, ModeContent } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch11')!;
 
@@ -790,6 +791,7 @@ function EoGRETab() {
 export function Chapter11() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('802.1X / EAP');
+  useSubtopicNav(CH11_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     CH11_TAB_SUBTOPICS[activeTab].forEach(id => markComplete('ch11', id));

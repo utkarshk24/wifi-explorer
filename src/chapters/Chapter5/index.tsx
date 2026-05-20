@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeBadge, ModeContent } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch5')!;
 
@@ -1289,6 +1290,7 @@ function tabLabel(tab: Tab): string {
 export function Chapter5() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('MAC Frame Format');
+  useSubtopicNav(CH5_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     CH5_TAB_SUBTOPICS[activeTab].forEach(id => markComplete('ch5', id));

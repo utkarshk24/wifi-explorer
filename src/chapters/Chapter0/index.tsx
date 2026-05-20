@@ -7,6 +7,7 @@ import { DHCPDoraSimulation } from './DHCPDoraSimulation';
 import { DNSResolutionSimulation } from './DNSResolutionSimulation';
 import { ICMPPingSimulation } from './ICMPPingSimulation';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch0')!;
 
@@ -1280,6 +1281,7 @@ function IPSubnettingTab() {
 export function Chapter0() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState('802_3_evo');
+  useSubtopicNav(TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     (TAB_SUBTOPICS[activeTab] ?? []).forEach(id => markComplete('ch0', id));

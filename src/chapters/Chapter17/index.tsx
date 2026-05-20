@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useApp } from '../../context/AppContext';
+import { ChapterHeader } from '../../components/shared/ChapterHeader';
+import { ModeBadge } from '../../components/shared/ModeContent';
+import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
+
+const CHAPTER = CHAPTERS.find(c => c.id === 'ch17')!;
 
 // ─── OSI Layer Data ───────────────────────────────────────────────────────────
 const OSI_LAYERS = [
@@ -158,7 +165,7 @@ function LayerCard({ layer, selected, onClick }: {
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-semibold text-white text-sm">{layer.name}</div>
-        <div className="text-xs text-surface-400 truncate">{layer.pdus}</div>
+        <div className="text-xs text-slate-400 truncate">{layer.pdus}</div>
       </div>
       <div
         className="text-xs font-mono px-2 py-0.5 rounded"
@@ -177,14 +184,14 @@ function OverviewTab() {
     <div className="grid lg:grid-cols-5 gap-6">
       {/* Layer stack */}
       <div className="lg:col-span-2 space-y-2">
-        <div className="text-xs text-surface-400 uppercase tracking-wider mb-3 px-1">
+        <div className="text-xs text-slate-400 uppercase tracking-wider mb-3 px-1">
           Click a layer to explore
         </div>
         {OSI_LAYERS.map(l => (
           <LayerCard key={l.num} layer={l} selected={selected.num === l.num} onClick={() => setSelected(l)} />
         ))}
         {/* Arrows */}
-        <div className="flex justify-center gap-12 mt-2 text-xs text-surface-500">
+        <div className="flex justify-center gap-12 mt-2 text-xs text-slate-500">
           <span>↑ Sender</span>
           <span>↓ Receiver</span>
         </div>
@@ -210,18 +217,18 @@ function OverviewTab() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-white">Layer {selected.num}: {selected.name}</h2>
-              <p className="text-sm text-surface-400">PDU: <span className="text-white">{selected.pdus}</span></p>
+              <p className="text-sm text-slate-400">PDU: <span className="text-white">{selected.pdus}</span></p>
             </div>
           </div>
 
-          <p className="text-surface-300 text-sm leading-relaxed">{selected.role}</p>
+          <p className="text-slate-300 text-sm leading-relaxed">{selected.role}</p>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="rounded-xl border border-white/10 p-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="text-xs font-semibold mb-2" style={{ color: selected.color }}>PROTOCOLS & STANDARDS</div>
               <div className="flex flex-wrap gap-1.5">
                 {selected.protocols.map(p => (
-                  <span key={p} className="text-xs bg-white/10 text-surface-300 px-2 py-0.5 rounded-full">{p}</span>
+                  <span key={p} className="text-xs bg-white/10 text-slate-300 px-2 py-0.5 rounded-full">{p}</span>
                 ))}
               </div>
             </div>
@@ -229,7 +236,7 @@ function OverviewTab() {
               <div className="text-xs font-semibold mb-2" style={{ color: selected.color }}>DEVICES</div>
               <div className="flex flex-wrap gap-1.5">
                 {selected.devices.map(d => (
-                  <span key={d} className="text-xs bg-white/10 text-surface-300 px-2 py-0.5 rounded-full">{d}</span>
+                  <span key={d} className="text-xs bg-white/10 text-slate-300 px-2 py-0.5 rounded-full">{d}</span>
                 ))}
               </div>
             </div>
@@ -238,7 +245,7 @@ function OverviewTab() {
           <div className="space-y-2">
             <div className="text-xs font-semibold" style={{ color: selected.color }}>IN-DEPTH</div>
             {selected.details.map((d, i) => (
-              <div key={i} className="flex gap-2 text-sm text-surface-300">
+              <div key={i} className="flex gap-2 text-sm text-slate-300">
                 <span style={{ color: selected.color }} className="mt-0.5 flex-shrink-0">›</span>
                 <span className="leading-relaxed font-mono text-xs">{d}</span>
               </div>
@@ -247,7 +254,7 @@ function OverviewTab() {
 
           <div className="rounded-xl border border-white/10 p-3" style={{ background: 'rgba(0,0,0,0.3)' }}>
             <span className="text-xs font-semibold" style={{ color: selected.color }}>ANALOGY: </span>
-            <span className="text-xs text-surface-300">{selected.analogy}</span>
+            <span className="text-xs text-slate-300">{selected.analogy}</span>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -270,7 +277,7 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
             key={l.num}
             onClick={() => setActiveL(l.num)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-              activeL === l.num ? 'border-white/30 text-white' : 'border-white/10 text-surface-400 hover:text-white'
+              activeL === l.num ? 'border-white/30 text-white' : 'border-white/10 text-slate-400 hover:text-white'
             }`}
             style={{ background: activeL === l.num ? l.bg : 'rgba(255,255,255,0.04)' }}
           >
@@ -297,13 +304,13 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-white">Layer {layer.num}: {layer.name}</h3>
-                <p className="text-sm text-surface-400">{layer.role}</p>
+                <p className="text-sm text-slate-400">{layer.role}</p>
               </div>
             </div>
 
             {/* PDU visual */}
             <div className="mt-4">
-              <div className="text-xs text-surface-400 mb-2">Protocol Data Unit (PDU)</div>
+              <div className="text-xs text-slate-400 mb-2">Protocol Data Unit (PDU)</div>
               <div className="flex items-center gap-1 flex-wrap">
                 {layer.num === 1 && (
                   <div className="flex gap-0.5">
@@ -340,7 +347,7 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
                 )}
                 {layer.num === 4 && (
                   <div className="space-y-2 w-full">
-                    <div className="text-xs text-surface-400">TCP Header:</div>
+                    <div className="text-xs text-slate-400">TCP Header:</div>
                     <div className="flex gap-1 flex-wrap">
                       {['Src Port 16b', 'Dst Port 16b', 'Seq# 32b', 'Ack# 32b', 'Offset 4b', 'Flags 9b', 'Window 16b', 'Checksum 16b', 'Urgent 16b', 'Options', 'Data'].map((f, i) => (
                         <div key={f} className="px-2 py-1 rounded text-xs font-mono border border-white/20"
@@ -349,7 +356,7 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
                         </div>
                       ))}
                     </div>
-                    <div className="text-xs text-surface-400 mt-2">UDP Header (only 8 bytes):</div>
+                    <div className="text-xs text-slate-400 mt-2">UDP Header (only 8 bytes):</div>
                     <div className="flex gap-1 flex-wrap">
                       {['Src Port 16b', 'Dst Port 16b', 'Length 16b', 'Checksum 16b', 'Data'].map((f, i) => (
                         <div key={f} className="px-2 py-1 rounded text-xs font-mono border border-white/20"
@@ -385,7 +392,7 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
                   style={{ background: layer.color, color: '#000' }}>
                   {i + 1}
                 </div>
-                <p className="text-sm text-surface-300 leading-relaxed font-mono">{d}</p>
+                <p className="text-sm text-slate-300 leading-relaxed">{d}</p>
               </motion.div>
             ))}
           </div>
@@ -395,7 +402,7 @@ function LayerDeepDive({ layers }: { layers: typeof OSI_LAYERS }) {
             <div className="text-xs font-semibold mb-3" style={{ color: layer.color }}>KEY PROTOCOLS</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {layer.protocols.map(p => (
-                <div key={p} className="flex items-center gap-2 text-xs text-surface-300">
+                <div key={p} className="flex items-center gap-2 text-xs text-slate-300">
                   <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: layer.color }} />
                   {p}
                 </div>
@@ -423,13 +430,13 @@ function EncapsulationTab() {
       <div className="flex gap-3 items-center">
         <button
           onClick={() => { setMode('encap'); setStep(0); }}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${mode === 'encap' ? 'border-blue-500/50 text-blue-400 bg-blue-500/10' : 'border-white/10 text-surface-400'}`}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${mode === 'encap' ? 'border-blue-500/50 text-blue-400 bg-blue-500/10' : 'border-white/10 text-slate-400'}`}
         >
           Encapsulation (Sender)
         </button>
         <button
           onClick={() => { setMode('decap'); setStep(0); }}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${mode === 'decap' ? 'border-purple-500/50 text-purple-400 bg-purple-500/10' : 'border-white/10 text-surface-400'}`}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${mode === 'decap' ? 'border-purple-500/50 text-purple-400 bg-purple-500/10' : 'border-white/10 text-slate-400'}`}
         >
           Decapsulation (Receiver)
         </button>
@@ -438,7 +445,7 @@ function EncapsulationTab() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Visual stack */}
         <div>
-          <div className="text-xs text-surface-400 uppercase tracking-wider mb-3">
+          <div className="text-xs text-slate-400 uppercase tracking-wider mb-3">
             {isEncap ? 'Building the PDU (Layer 7 → 1)' : 'Stripping headers (Layer 1 → 7)'}
           </div>
           <div className="space-y-1.5">
@@ -519,10 +526,10 @@ function EncapsulationTab() {
                 </div>
                 <div>
                   <div className="font-bold text-white">{OSI_LAYERS.find(l => l.num === currentStep.layer)?.name} Layer</div>
-                  <div className="text-xs text-surface-400">{currentStep.label}</div>
+                  <div className="text-xs text-slate-400">{currentStep.label}</div>
                 </div>
               </div>
-              <p className="text-sm text-surface-300 leading-relaxed">
+              <p className="text-sm text-slate-300 leading-relaxed">
                 {isEncap
                   ? currentStep.layer === 7 ? 'The application creates user data (e.g., an HTTP GET request). No header added yet — this is the raw message.'
                   : currentStep.layer === 6 ? 'Presentation layer encodes the data (e.g., encrypts with TLS). The Application Data is wrapped.'
@@ -559,7 +566,7 @@ function EncapsulationTab() {
             <button
               onClick={() => setStep(s => Math.max(0, s - 1))}
               disabled={step === 0}
-              className="flex-1 py-2 rounded-xl border border-white/10 text-sm text-surface-400 hover:text-white hover:border-white/30 disabled:opacity-30 transition-all"
+              className="flex-1 py-2 rounded-xl border border-white/10 text-sm text-slate-400 hover:text-white hover:border-white/30 disabled:opacity-30 transition-all"
             >
               ← Previous
             </button>
@@ -575,8 +582,8 @@ function EncapsulationTab() {
 
           {/* Summary boxes */}
           <div className="rounded-xl border border-white/10 p-4 space-y-2" style={{ background: 'rgba(0,0,0,0.3)' }}>
-            <div className="text-xs font-semibold text-surface-400">KEY TAKEAWAY</div>
-            <p className="text-xs text-surface-300 leading-relaxed">
+            <div className="text-xs font-semibold text-slate-400">KEY TAKEAWAY</div>
+            <p className="text-xs text-slate-300 leading-relaxed">
               Each layer adds its own header (and sometimes trailer) to create a new PDU.
               The receiver processes layers in reverse order — stripping each header and passing
               the payload up. This is called <span className="text-white font-semibold">Protocol Data Unit encapsulation</span>.
@@ -584,7 +591,7 @@ function EncapsulationTab() {
             <div className="grid grid-cols-3 gap-2 mt-2 text-xs text-center">
               {[['L7-5', 'Data/Message'], ['L4', 'Segment'], ['L3', 'Packet'], ['L2', 'Frame'], ['L1', 'Bits']].map(([l, pdu]) => (
                 <div key={l} className="rounded px-1 py-1.5 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <div className="font-mono text-surface-400">{l}</div>
+                  <div className="font-mono text-slate-400">{l}</div>
                   <div className="text-white font-semibold">{pdu}</div>
                 </div>
               ))}
@@ -597,74 +604,52 @@ function EncapsulationTab() {
 }
 
 // ─── Main Chapter ─────────────────────────────────────────────────────────────
-const TABS = ['OSI Overview', 'Physical & Data Link', 'Network & Transport', 'Session–Application', 'Encapsulation'];
+const TABS = ['OSI Overview', 'Physical & Data Link', 'Network & Transport', 'Session–Application', 'Encapsulation'] as const;
+type Tab = typeof TABS[number];
+
+const CH17_TAB_SUBTOPICS: Record<Tab, string[]> = {
+  'OSI Overview':         ['osi_overview'],
+  'Physical & Data Link': ['osi_l12'],
+  'Network & Transport':  ['osi_l34'],
+  'Session–Application':  ['osi_l567'],
+  'Encapsulation':        ['osi_encap'],
+};
 
 export function Chapter17() {
-  const [tab, setTab] = useState(0);
+  const { markComplete } = useApp();
+  const [activeTab, setActiveTab] = useState<Tab>('OSI Overview');
+  useSubtopicNav(CH17_TAB_SUBTOPICS, setActiveTab);
+
+  useEffect(() => {
+    CH17_TAB_SUBTOPICS[activeTab].forEach(id => markComplete('ch17', id));
+  }, [activeTab, markComplete]);
 
   return (
-    <div className="min-h-screen p-6 space-y-6" style={{ background: 'linear-gradient(135deg, #0d1117 0%, #0f1923 100%)' }}>
-      {/* Hero */}
-      <div className="rounded-3xl border border-white/10 p-8 overflow-hidden relative"
-        style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.15) 100%)' }}>
-        <div className="absolute top-0 right-0 w-80 h-80 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, #3b82f6, transparent)', transform: 'translate(25%, -25%)' }} />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-4xl">📚</span>
-            <div className="px-3 py-1 rounded-full text-xs font-semibold border border-blue-500/30 text-blue-400 bg-blue-500/10">
-              IEEE Networking Fundamentals
-            </div>
-          </div>
-          <h1 className="text-4xl font-black text-white mb-2">OSI Reference Model</h1>
-          <p className="text-surface-400 max-w-2xl leading-relaxed">
-            The 7-layer Open Systems Interconnection model (ISO/IEC 7498-1) is the conceptual framework
-            for understanding how different network protocols interoperate. Each layer has a distinct role
-            and communicates only with the layers immediately above and below it.
-          </p>
-          <div className="flex gap-4 mt-4 text-sm">
-            {['7 Layers', 'Protocol Headers', 'Encapsulation', 'PDU Types'].map(tag => (
-              <span key={tag} className="px-3 py-1 rounded-full bg-white/10 text-surface-300 border border-white/10">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <ChapterHeader chapter={CHAPTER} description="The 7-layer ISO/IEC 7498-1 framework — each layer's role, PDU types, protocols, header anatomy, and a step-by-step encapsulation/decapsulation animation." />
+        <ModeBadge />
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map((t, i) => (
-          <button
-            key={t}
-            onClick={() => setTab(i)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-              tab === i
-                ? 'bg-blue-500/20 border-blue-500/40 text-blue-400'
-                : 'bg-white/5 border-white/10 text-surface-400 hover:text-white hover:border-white/20'
-            }`}
-          >
-            {t}
+      {/* Tab bar */}
+      <div className="flex gap-1.5 border-b border-slate-700/50 overflow-x-auto pb-0">
+        {TABS.map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2.5 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-all ${
+              activeTab === tab ? 'border-band5 text-band5' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+            {tab}
           </button>
         ))}
       </div>
 
-      {/* Content */}
       <AnimatePresence mode="wait">
-        <motion.div
-          key={tab}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-2xl border border-white/10 p-6"
-          style={{ background: 'rgba(255,255,255,0.03)' }}
-        >
-          {tab === 0 && <OverviewTab />}
-          {tab === 1 && <LayerDeepDive layers={[OSI_LAYERS[6], OSI_LAYERS[5]]} />}
-          {tab === 2 && <LayerDeepDive layers={[OSI_LAYERS[4], OSI_LAYERS[3]]} />}
-          {tab === 3 && <LayerDeepDive layers={[OSI_LAYERS[2], OSI_LAYERS[1], OSI_LAYERS[0]]} />}
-          {tab === 4 && <EncapsulationTab />}
+        <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+          {activeTab === 'OSI Overview'         && <OverviewTab />}
+          {activeTab === 'Physical & Data Link'  && <LayerDeepDive layers={[OSI_LAYERS[6], OSI_LAYERS[5]]} />}
+          {activeTab === 'Network & Transport'   && <LayerDeepDive layers={[OSI_LAYERS[4], OSI_LAYERS[3]]} />}
+          {activeTab === 'Session–Application'   && <LayerDeepDive layers={[OSI_LAYERS[2], OSI_LAYERS[1], OSI_LAYERS[0]]} />}
+          {activeTab === 'Encapsulation'         && <EncapsulationTab />}
         </motion.div>
       </AnimatePresence>
     </div>

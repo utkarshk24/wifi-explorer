@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ModeContent } from '../../components/shared/ModeContent';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch8')!;
 
@@ -534,6 +535,7 @@ const CH8_TAB_SUBTOPICS: Record<Tab, string[]> = {
 export function Chapter8() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('Fundamentals');
+  useSubtopicNav(CH8_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     CH8_TAB_SUBTOPICS[activeTab].forEach(id => markComplete('ch8', id));

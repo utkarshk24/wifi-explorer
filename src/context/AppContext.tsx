@@ -5,6 +5,7 @@ const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [activeChapter, setActiveChapter] = useState<ChapterId>('ch16');
+  const [pendingSubtopic, setPendingSubtopic] = useState<string | null>(null);
 
   // no-op — progress tracking removed
   const markComplete = useCallback((_chapterId: ChapterId, _subTopicId: string) => {}, []);
@@ -15,6 +16,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       activeChapter,
       setActiveChapter,
       markComplete,
+      pendingSubtopic,
+      setPendingSubtopic,
     }}>
       {children}
     </AppContext.Provider>

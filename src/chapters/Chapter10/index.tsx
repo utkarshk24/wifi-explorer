@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ModeContent } from '../../components/shared/ModeContent';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch10')!;
 
@@ -763,6 +764,7 @@ const CH10_TAB_SUBTOPICS: Record<Tab, string[]> = {
 export function Chapter10() {
   const { markComplete } = useApp();
   const [tab, setTab] = useState<Tab>('Methodology');
+  useSubtopicNav(CH10_TAB_SUBTOPICS, setTab);
 
   useEffect(() => {
     CH10_TAB_SUBTOPICS[tab].forEach(id => markComplete('ch10', id));

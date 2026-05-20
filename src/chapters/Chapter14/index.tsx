@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { ChapterHeader } from '../../components/shared/ChapterHeader';
 import { ModeContent, ModeBadge } from '../../components/shared/ModeContent';
 import { CHAPTERS } from '../../data/curriculum';
+import { useSubtopicNav } from '../../hooks/useSubtopicNav';
 
 const CHAPTER = CHAPTERS.find(c => c.id === 'ch14')!;
 const TABS = ['Frame Anatomy', 'MAC Addressing', 'Error Detection'] as const;
@@ -606,6 +607,7 @@ function ErrorDetectionTab() {
 export function Chapter14() {
   const { markComplete } = useApp();
   const [activeTab, setActiveTab] = useState<Tab>('Frame Anatomy');
+  useSubtopicNav(CH14_TAB_SUBTOPICS, setActiveTab);
 
   useEffect(() => {
     (CH14_TAB_SUBTOPICS[activeTab] ?? []).forEach(id => markComplete('ch14', id));
