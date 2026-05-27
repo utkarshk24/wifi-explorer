@@ -18,7 +18,7 @@ export function Sidebar() {
             📶
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white leading-tight">Wi-Fi Explorer</h1>
+            <h1 className="text-sm font-bold text-white leading-tight">Dot11Lab</h1>
             <p className="text-xs text-slate-500">IEEE 802.3 & 802.11 Engineering</p>
           </div>
         </div>

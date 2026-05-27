@@ -27,7 +27,7 @@ export function TopBar({ sidebarOpen, setSidebarOpen }: TopBarProps) {
       {/* Breadcrumb */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-slate-600 text-sm hidden sm:inline">Wi-Fi Explorer</span>
+          <span className="text-slate-600 text-sm hidden sm:inline">Dot11Lab</span>
           <span className="text-slate-700 hidden sm:inline">/</span>
           {chapter && (
             <span className={`text-sm font-semibold truncate ${chapter.accentClass}`}>

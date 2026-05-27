@@ -1,4 +1,4 @@
-# Wi-Fi Explorer
+# Dot11Lab
 
 An interactive, browser-based learning guide covering computer networking fundamentals, IEEE 802.3 Ethernet, and IEEE 802.11 Wi-Fi — from bits on a wire to Wi-Fi 7.
 
