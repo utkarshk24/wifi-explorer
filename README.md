@@ -2,7 +2,7 @@
 
 An interactive, browser-based learning guide covering computer networking fundamentals, IEEE 802.3 Ethernet, and IEEE 802.11 Wi-Fi — from bits on a wire to Wi-Fi 7.
 
-**Live demo:** https://utkarshk24.github.io/wifi-explorer/
+**Live demo:** https://utkarshk24.github.io/dot11lab/
 
 Built with React, TypeScript, Tailwind CSS, and Framer Motion. No login. No paywall. Fully open source.
 
@@ -95,8 +95,8 @@ Design and simulate your own Wi-Fi network topology.
 ## Run Locally
 
 ```bash
-git clone https://github.com/utkarshk24/wifi-explorer.git
-cd wifi-explorer
+git clone https://github.com/utkarshk24/dot11lab.git
+cd dot11lab
 npm install
 npm run dev
 ```
